@@ -1,7 +1,7 @@
 [
-  { "slug": "start",  "title": "ابدأ من الأول", "subtitle": "الشهادتين والوضوء والصلاة، خطوة بخطوة", "sort": 1, "is_available": true },
-  { "slug": "quran",  "title": "صحبة القرآن",   "subtitle": "افهم واحفظ السورة بالخريطة",            "sort": 2, "is_available": true },
-  { "slug": "sunnah", "title": "صحبة السنة",    "subtitle": "الأربعين النووية بنفس الطريقة",          "sort": 3, "is_available": false },
-  { "slug": "seerah", "title": "السيرة كحكاية", "subtitle": "حياة النبي ﷺ من مصادر موثقة",           "sort": 4, "is_available": false },
-  { "slug": "listen", "title": "اسمع",          "subtitle": "بودكاستات وقنوات مختارة",              "sort": 5, "is_available": false }
+  { "slug": "start",  "title": "دار الأرقم",    "subtitle": "ابدأ من الأول: الشهادتين والوضوء والصلاة",  "sort": 1, "is_available": true },
+  { "slug": "quran",  "title": "الكُتّاب",       "subtitle": "صحبة القرآن: افهم واحفظ السورة بالخريطة",  "sort": 2, "is_available": true },
+  { "slug": "sunnah", "title": "الصُّفّة",       "subtitle": "صحبة السنة: الأربعين النووية بنفس الطريقة", "sort": 3, "is_available": false },
+  { "slug": "seerah", "title": "السيرة كحكاية", "subtitle": "حياة النبي ﷺ من مصادر موثقة",             "sort": 4, "is_available": false },
+  { "slug": "listen", "title": "اسمع",          "subtitle": "بودكاستات وقنوات مختارة",                "sort": 5, "is_available": false }
 ]
