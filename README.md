@@ -26,6 +26,14 @@ npm run dev                 # http://localhost:3000
 
 `npm run build:preview` بيطلع `dist/preview.html`: نسخة ملف واحد تشتغل من غير سيرفر.
 
+## الـ Deploy (Vercel + Neon، من غير كارت)
+
+1. اعمل import للـ repo من vercel.com/new. هيتعرف على Express لوحده من `app.js`.
+2. ضيف Environment Variables: `DATABASE_URL` (من Neon) و`PREVIEW_DRAFTS=true` لحد الإطلاق.
+3. `vercel-build` بيشغّل الـ migrate والـ seed مع كل deploy.
+
+`render.yaml` موجود كبديل لو حبينا سيرفر دايم.
+
 ## الـ API
 
 | Route | |
