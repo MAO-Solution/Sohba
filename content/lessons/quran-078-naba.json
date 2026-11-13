@@ -1,9 +1,10 @@
 {
   "track": "quran",
+  "chapter": "juz-30",
   "slug": "an-naba",
   "title": "سورة النبأ",
   "summary": "الخبر العظيم · ٤٠ آية",
-  "sort": 37,
+  "sort": 1,
   "status": "in_review",
   "blocks": [
     {

@@ -19,6 +19,13 @@ const canonical = (v) =>
   : JSON.stringify(v);
 
 // What the reviewer signs off on: the text the user reads.
+// Derived facts for the UI (surah number, ayah and word counts). Not reviewed content, so not hashed.
+function metaOf(l) {
+  const ayat = l.blocks.filter((b) => b.type === 'quran' && b.surah && b.ayah);
+  if (!ayat.length) return {};
+  return { surah: ayat[0].surah, ayat: ayat.length, words: ayat.reduce((n, b) => n + b.body.split(/\s+/).filter((w) => /[\u0621-\u064A]/.test(w)).length, 0) };
+}
+
 const hashLesson = (l) =>
   createHash('sha256').update(canonical({ title: l.title, summary: l.summary ?? null, blocks: l.blocks })).digest('hex');
 
@@ -33,9 +40,9 @@ async function seed() {
 
     for (const t of tracks) {
       await client.query(
-        `INSERT INTO tracks (slug, title, subtitle, sort, is_available, is_listed) VALUES ($1,$2,$3,$4,$5,$6)
-         ON CONFLICT (slug) DO UPDATE SET title=$2, subtitle=$3, sort=$4, is_available=$5, is_listed=$6`,
-        [t.slug, t.title, t.subtitle, t.sort, t.is_available, t.is_listed ?? true]
+        `INSERT INTO tracks (slug, title, subtitle, sort, is_available, is_listed, chapters) VALUES ($1,$2,$3,$4,$5,$6,$7)
+         ON CONFLICT (slug) DO UPDATE SET title=$2, subtitle=$3, sort=$4, is_available=$5, is_listed=$6, chapters=$7`,
+        [t.slug, t.title, t.subtitle, t.sort, t.is_available, t.is_listed ?? true, JSON.stringify(t.chapters ?? [])]
       );
     }
     for (const s of sources) {
@@ -67,9 +74,10 @@ async function seed() {
 
       if (!old) {
         ({ rows: [{ id: lessonId }] } = await client.query(
-          `INSERT INTO lessons (track_id, slug, title, summary, sort, status, reviewed_by, reviewed_at, content_hash)
-           VALUES ((SELECT id FROM tracks WHERE slug=$1), $2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-          [l.track, l.slug, l.title, l.summary, l.sort, l.status ?? 'draft', l.reviewed_by ?? null, l.reviewed_at ?? null, hash]
+          `INSERT INTO lessons (track_id, slug, title, summary, sort, status, reviewed_by, reviewed_at, content_hash, chapter, meta)
+           VALUES ((SELECT id FROM tracks WHERE slug=$1), $2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+          [l.track, l.slug, l.title, l.summary, l.sort, l.status ?? 'draft', l.reviewed_by ?? null, l.reviewed_at ?? null, hash,
+           l.chapter ?? null, metaOf(l)]
         ));
         stats.inserted++;
       } else {
@@ -78,11 +86,11 @@ async function seed() {
         const demote = changed && REVIEWED.has(old.status);
         await client.query(
           `UPDATE lessons SET track_id=(SELECT id FROM tracks WHERE slug=$2), title=$3, summary=$4, sort=$5,
-                  content_hash=$6
+                  content_hash=$6, chapter=$7, meta=$8
                   ${changed ? ', updated_at=now()' : ''}
                   ${demote ? `, status='in_review', reviewed_by=NULL, reviewed_at=NULL` : ''}
             WHERE id=$1`,
-          [lessonId, l.track, l.title, l.summary, l.sort, hash]
+          [lessonId, l.track, l.title, l.summary, l.sort, hash, l.chapter ?? null, metaOf(l)]
         );
         if (demote) {
           stats.backToReview.push(l.slug);

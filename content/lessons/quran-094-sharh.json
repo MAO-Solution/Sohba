@@ -1,9 +1,10 @@
 {
   "track": "quran",
+  "chapter": "juz-30",
   "slug": "ash-sharh",
   "title": "سورة الشرح",
   "summary": "مع الصعب، فيه سهل · ٨ آيات",
-  "sort": 21,
+  "sort": 17,
   "status": "in_review",
   "blocks": [
     {

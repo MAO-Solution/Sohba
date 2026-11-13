@@ -1,9 +1,10 @@
 {
   "track": "quran",
+  "chapter": "juz-30",
   "slug": "al-ala",
   "title": "سورة الأعلى",
   "summary": "سبّح اسم ربك الأعلى · ١٩ آية",
-  "sort": 28,
+  "sort": 10,
   "status": "in_review",
   "blocks": [
     {

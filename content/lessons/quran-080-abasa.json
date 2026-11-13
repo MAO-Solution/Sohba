@@ -1,9 +1,10 @@
 {
   "track": "quran",
+  "chapter": "juz-30",
   "slug": "abasa",
   "title": "سورة عبس",
   "summary": "الأعمى اللي جه يتعلّم · ٤٢ آية",
-  "sort": 35,
+  "sort": 3,
   "status": "in_review",
   "blocks": [
     {
