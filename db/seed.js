@@ -60,6 +60,10 @@ async function seed() {
         if (b.source && !srcId[b.source]) throw new Error(`Unknown source "${b.source}" in lesson ${l.slug}`);
         if (b.type === 'quiz' && !(Array.isArray(b.options) && b.options.length >= 2 && Number.isInteger(b.answer)
             && b.answer >= 0 && b.answer < b.options.length && b.q)) throw new Error(`Bad quiz in lesson ${l.slug}: ${b.q}`);
+        if (b.type === 'situation' && !(Array.isArray(b.variants) && b.variants.length && b.variants.every((v) =>
+            v.q && Array.isArray(v.options) && v.options.length >= 2 && Number.isInteger(v.best) && v.best >= 0 && v.best < v.options.length)))
+          throw new Error(`Bad situation in lesson ${l.slug}`);
+        if (b.type === 'scene' && !(Array.isArray(b.panels) && b.panels.length >= 2)) throw new Error(`Bad scene in lesson ${l.slug}`);
       }
     }
 
