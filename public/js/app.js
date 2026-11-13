@@ -80,6 +80,13 @@
     moon: '<path d="M21 6a10 10 0 1 0 5 15A8 8 0 0 1 21 6z"/>',
     knot: '<path d="M6 16h20"/><circle cx="12" cy="16" r="3"/><circle cx="20" cy="16" r="3"/>',
     eye: '<path d="M4 16s4-7 12-7 12 7 12 7-4 7-12 7S4 16 4 16z"/><circle cx="16" cy="16" r="3"/>',
+    kaaba: '<path d="M7 11l9-4 9 4v14l-9 3-9-3z"/><path d="M7 11l9 3 9-3"/><path d="M16 14v14"/><path d="M7 15l9 3 9-3" stroke-width="2.6"/>',
+    elephant: '<path d="M8 22v-6a8 8 0 0 1 16 0v6h-3v-4h-2v4h-3v-4h-2v4z"/><path d="M8 16c-3 0-4 3-4 6 0 2 2 2 2 0"/><circle cx="12" cy="14" r="1"/><path d="M15 11c1 2 1 4-1 5"/>',
+    birds: '<path d="M4 13c3-3 5-3 7 0 2-3 4-3 7 0"/><path d="M13 22c3-3 5-3 7 0 2-3 4-3 7 0"/><path d="M19 8c2-2 3-2 4 0 1-2 2-2 4 0"/>',
+    stones: '<circle cx="10" cy="21" r="3.5"/><circle cx="21" cy="12" r="3"/><circle cx="23" cy="23" r="2.5"/><path d="M7 9l3 4M14 6l2 4"/>',
+    leaf: '<path d="M7 25C7 13 15 7 26 6c0 11-7 19-19 19z"/><path d="M7 25l11-11"/>',
+    hourglass: '<path d="M9 5h14M9 27h14"/><path d="M10 5c0 8 12 7 12 11s-12 3-12 11"/><path d="M22 5c0 8-12 7-12 11s12 3 12 11"/>',
+    voice: '<path d="M16 5a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V9a4 4 0 0 1 4-4z"/><path d="M8 15a8 8 0 0 0 16 0M16 23v4"/>',
   };
   const icon = (k, color) => `<svg viewBox="0 0 32 32" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[k] || ''}</svg>`;
   const TRACK_MARK = { start: '١', quran: '﴿﴾', sunnah: '٤٠', seerah: '✦', listen: '🎧' };
@@ -315,6 +322,25 @@
             </div>`).join('')}
         </div>`;
       case 'memorize': ctx.memorize = true; return '<div id="mem"></div>';
+      case 'guide': return `<div class="b-guide">${HUDHUD}<p>${esc(c.body)}</p></div>`;
+      case 'scene': return `
+        <div class="b-scene"><div class="k">${esc(c.title || 'المشهد')}</div>
+          <div class="scn-grid">${c.panels.map((p, i) => `<div class="scn"><span class="pn">${AR(i + 1)}</span>${icon(p.icon, '#1d5c45')}<p>${esc(p.cap)}</p></div>`).join('')}</div></div>`;
+      case 'deep': return `
+        <details class="b-deep"${ctx.admin ? ' open' : ''}><summary>${esc(c.label || 'انزل أعمق')}</summary>
+          ${(c.items || []).map((it) => `<h4>${esc(it.h)}</h4><p>${esc(it.p)}</p>`).join('')}</details>`;
+      case 'family': return `
+        <div class="b-family"><div class="k">سؤال العيلة</div><p class="q">${esc(c.q)}</p>
+          ${c.hint ? `<details${ctx.admin ? ' open' : ''}><summary>فكرة للإجابة</summary><p>${esc(c.hint)}</p></details>` : ''}</div>`;
+      case 'situation': {
+        if (ctx.admin) return c.variants.map((v) => `<div class="b-sit"><div class="k">موقف · ${esc(v.label)}</div><p class="q">${esc(v.q)}</p>
+          <div class="opts">${v.options.map((o, i) => `<button class="opt${i === v.best ? ' ok' : ''}" disabled>${esc(o)}</button>`).join('')}</div></div>`).join('');
+        const n = (ctx.situations ||= []).push(c) - 1;
+        return `<div class="b-sit" data-sit="${n}"><div class="k">موقف: إنت هتعمل إيه؟</div>
+          ${c.variants.length > 1 ? `<div class="seg-tabs">${c.variants.map((v, i) => `<button data-v="${i}"${i ? '' : ' class="on"'}>${esc(v.label)}</button>`).join('')}</div>` : ''}
+          <div class="sit-body"></div></div>`;
+      }
+      case 'tasmee': ctx.tasmee = true; return ctx.admin ? '<p class="b-note">هنا «تسميع» تفاعلي بيتولّد من آيات الدرس: رتّب الآيات، وكمّل الكلمة، واسمع وردّد.</p>' : '<div id="tasmee"></div>';
       case 'link': {
         const safe = /^https:\/\//.test(c.url || '') ? c.url : '#';
         return `<a class="b-link" href="${esc(safe)}" target="_blank" rel="noopener">
@@ -340,6 +366,115 @@
   function order(c) {
     const h = (str) => [...str].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) | 0, 7);
     return c.options.map((o, i) => i).sort((a, b) => h(c.q + c.options[a]) - h(c.q + c.options[b]));
+  }
+
+  /* ---------- الهدهد: the companion (an original drawing; no people, ever) ---------- */
+  const HUDHUD = `<svg class="hudhud" viewBox="0 0 64 64" aria-hidden="true">
+    <g fill="#d99a5b" stroke="#7a4a1f" stroke-width="1.2"><path d="M22 14l-4-9 6 7M26 12l-1-10 4 9M30 12l3-9 0 10M33 14l6-7-3 9"/></g>
+    <g fill="#222"><circle cx="18" cy="5" r="1.6"/><circle cx="25" cy="2" r="1.6"/><circle cx="33" cy="3" r="1.6"/><circle cx="39" cy="7" r="1.6"/></g>
+    <ellipse cx="38" cy="38" rx="16" ry="12" fill="#e7b07a" stroke="#7a4a1f" stroke-width="1.2"/>
+    <path d="M40 30c8 0 14 4 16 10-6 2-12 1-16-2z" fill="#fff" stroke="#222" stroke-width="1.2"/>
+    <path d="M44 32l-2 6M49 33l-2 6M53 35l-2 5" stroke="#222" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="28" cy="22" r="9" fill="#e7b07a" stroke="#7a4a1f" stroke-width="1.2"/>
+    <circle cx="25.5" cy="20.5" r="2" fill="#222"/><circle cx="25" cy="20" r=".6" fill="#fff"/>
+    <path d="M20 23c-6 1-11 4-15 8 5-2 10-4 15-5" fill="#5b4636"/>
+    <path d="M34 49l-2 8M40 50l1 7" stroke="#7a4a1f" stroke-width="1.6" stroke-linecap="round"/>
+  </svg>`;
+
+  // موقف before a hadith: no right/wrong score, just a nudge toward what the Prophet ﷺ taught.
+  function bindSituations(root, ctx) {
+    root.querySelectorAll('.b-sit[data-sit]').forEach((el) => {
+      const c = ctx.situations[el.dataset.sit];
+      const show = (vi) => {
+        const v = c.variants[vi];
+        el.querySelectorAll('.seg-tabs button').forEach((b) => b.classList.toggle('on', Number(b.dataset.v) === vi));
+        el.querySelector('.sit-body').innerHTML = `<p class="q">${esc(v.q)}</p>
+          <div class="opts">${v.options.map((o, i) => `<button class="opt" data-i="${i}">${esc(o)}</button>`).join('')}</div><div class="why" hidden></div>`;
+        el.querySelectorAll('.opt').forEach((btn) => (btn.onclick = () => {
+          const i = Number(btn.dataset.i);
+          el.querySelectorAll('.opt').forEach((b) => { b.disabled = true; if (Number(b.dataset.i) === v.best) b.classList.add('ok'); });
+          const why = el.querySelector('.why'); why.hidden = false;
+          why.textContent = i === v.best ? 'ده بالظبط اللي النبي ﷺ وصّى بيه. شوف الحديث 👇' : 'عادي، كلنا بيحصلنا كده. تعالى نشوف النبي ﷺ وصّى بإيه 👇';
+        }));
+      };
+      el.querySelectorAll('.seg-tabs button').forEach((b) => (b.onclick = () => show(Number(b.dataset.v))));
+      show(0);
+    });
+  }
+
+  // تسميع: built from the lesson's own ayat. Respectful by design: no music, no points,
+  // the correct order is always what stays on screen at the end, and words are never cut.
+  function mountTasmee(ayat) {
+    const el = document.getElementById('tasmee');
+    if (!el || !ayat.length) return;
+    const words = (t) => t.split(/\s+/).filter((w) => /[\u0621-\u064A]/.test(w));
+    const shuffle = (a) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+    const modes = [...(ayat.length > 1 ? [['order', 'رتّب الآيات']] : []), ['cloze', 'كمّل الآية'], ['listen', 'اسمع وردّد']];
+    let mode = modes[0][0];
+    const pad = (n) => String(n).padStart(3, '0');
+    const player = new Audio();
+
+    const ordered = () => ayat.map((a) => `<div class="tq ok">${esc(a.body)} <span class="anum">﴿${AR(a.ayah)}﴾</span></div>`).join('');
+    const views = {
+      order() {
+        let next = 0, deck = shuffle(ayat);
+        if (deck.every((a, i) => a === ayat[i])) deck = [...deck.slice(1), deck[0]];
+        const draw = (msg = 'دوس على أول آية') => {
+          body.innerHTML = `${ayat.slice(0, next).map((a) => `<div class="tq ok">${esc(a.body)} <span class="anum">﴿${AR(a.ayah)}﴾</span></div>`).join('')}
+            ${next < ayat.length ? `<p class="tmsg">${msg}</p>${deck.filter((a) => ayat.indexOf(a) >= next).map((a) => `<button class="tq" data-a="${ayat.indexOf(a)}">${esc(a.body)}</button>`).join('')}
+              <button class="link-btn" data-show>وريني الترتيب</button>` : '<p class="tmsg done">برافو، رتّبت السورة كلها 👏</p>'}`;
+          body.querySelectorAll('[data-a]').forEach((b) => (b.onclick = () => {
+            if (Number(b.dataset.a) === next) { next++; draw('صح، كمّل'); }
+            else { b.classList.add('no'); setTimeout(() => b.classList.remove('no'), 600); body.querySelector('.tmsg').textContent = `قرّب… إيه اللي بعد «${words(ayat[next - 1]?.body || '').slice(-2).join(' ') || 'أول السورة'}»؟`; }
+          }));
+          body.querySelector('[data-show]')?.addEventListener('click', () => { next = ayat.length; body.innerHTML = ordered() + '<p class="tmsg">ده الترتيب. جرّب تاني بعد شوية.</p>'; });
+        };
+        draw();
+      },
+      cloze() {
+        let i = 0;
+        const pool = [...new Set(ayat.flatMap((a) => words(a.body)))];
+        const draw = () => {
+          if (i >= ayat.length) { body.innerHTML = ordered() + '<p class="tmsg done">خلّصت التسميع، ما شاء الله 👏</p>'; return; }
+          const a = ayat[i], ws = a.body.split(/\s+/);
+          const cand = ws.map((w, k) => [w, k]).filter(([w]) => /[\u0621-\u064A]/.test(w));
+          const [target, ti] = cand.reduce((best, x) => (x[0].length >= best[0].length ? x : best), cand[0]);
+          const own = new Set(words(a.body)); // distractors come from other ayat only, never from this one
+          const opts = shuffle([target, ...shuffle(pool.filter((w) => !own.has(w))).slice(0, 2)]);
+          body.innerHTML = `<p class="tmsg">آية ${AR(a.ayah)} من ${AR(ayat.length)}: اختار الكلمة الناقصة</p>
+            <div class="tq">${ws.map((w, k) => (k === ti ? '<span class="blank">؟</span>' : esc(w))).join(' ')} <span class="anum">﴿${AR(a.ayah)}﴾</span></div>
+            <div class="opts">${opts.map((o) => `<button class="opt">${esc(o)}</button>`).join('')}</div>`;
+          body.querySelectorAll('.opt').forEach((b) => (b.onclick = () => {
+            const right = b.textContent === target;
+            body.querySelectorAll('.opt').forEach((x) => { x.disabled = true; if (x.textContent === target) x.classList.add('ok'); });
+            if (!right) b.classList.add('no');
+            body.querySelector('.blank').outerHTML = `<span class="filled">${esc(target)}</span>`;
+            body.insertAdjacentHTML('beforeend', `<button class="btn pri nxt">${i + 1 < ayat.length ? 'الآية اللي بعدها' : 'خلّصت'}</button>`);
+            body.querySelector('.nxt').onclick = () => { i++; draw(); };
+          }));
+        };
+        draw();
+      },
+      listen() {
+        body.innerHTML = `<p class="tmsg">اسمع الآية بصوت الشيخ الحصري، وبعدين قولها بصوتك.</p>
+          ${ayat.map((a) => `<div class="tq lis"><button class="play" data-s="${pad(a.surah)}${pad(a.ayah)}" aria-label="اسمع">▶</button><span>${esc(a.body)} <span class="anum">﴿${AR(a.ayah)}﴾</span></span></div>`).join('')}`;
+        body.querySelectorAll('.play').forEach((b) => (b.onclick = () => {
+          player.src = `https://everyayah.com/data/Husary_128kbps/${b.dataset.s}.mp3`;
+          player.play().catch(() => toast('الصوت مش متاح دلوقتي، جرّب تاني'));
+          body.querySelectorAll('.play').forEach((x) => x.classList.remove('on')); b.classList.add('on');
+        }));
+      },
+    };
+    el.className = 'b-tasmee';
+    el.innerHTML = `<div class="k">تسميع</div><p class="sub">زي ما الشيخ بيسمّع لتلاميذه في الكُتّاب</p>
+      <div class="seg-tabs">${modes.map(([k, t]) => `<button data-m="${k}"${k === mode ? ' class="on"' : ''}>${t}</button>`).join('')}</div><div class="t-body"></div>`;
+    const body = el.querySelector('.t-body');
+    el.querySelectorAll('[data-m]').forEach((b) => (b.onclick = () => {
+      mode = b.dataset.m; player.pause();
+      el.querySelectorAll('[data-m]').forEach((x) => x.classList.toggle('on', x === b));
+      views[mode]();
+    }));
+    views[mode]();
   }
 
   /* ---------- افتكر + طبّق: all on-device, no account needed ---------- */
@@ -439,6 +574,8 @@
       };
       bindQuizzes($app, ctx);
       bindAction($app, l, ctx.action);
+      bindSituations($app, ctx);
+      if (ctx.tasmee) mountTasmee(l.blocks.filter((b) => b.type === 'quran' && b.content.ayah).map((b) => b.content));
       if (ctx.memorize) mountMemorize(l.blocks.filter((b) => b.type === 'quran' && b.content.ayah).map((b) => b.content), l.slug, l.title);
     } };
   }

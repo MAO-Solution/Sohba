@@ -224,3 +224,45 @@ body[data-theme=hajj]{--green:#3d3424;--green-2:#5a4c35;--green-soft:#efe8da}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:-1px;border:1px solid var(--line)}
 .legend i.s-mem{background:var(--green)}.legend i.s-done{background:var(--green-soft)}.legend i.s-due{background:var(--gold-soft)}
 .plan-row.next{border-color:var(--gold)}
+
+/* Layered lesson: الهدهد، المشهد، انزل أعمق، موقف، تسميع، سؤال العيلة */
+.b-guide{display:flex;align-items:flex-end;gap:10px;margin:14px 0}
+.hudhud{width:58px;height:58px;flex:none}
+.b-guide p{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px 16px 16px 4px;padding:10px 14px;font-size:14.5px}
+.b-scene{margin:14px 0}
+.b-scene .k,.b-sit .k,.b-tasmee .k,.b-family .k{font-size:12px;font-weight:600;color:var(--green);margin-bottom:8px}
+.scn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scn{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 10px 10px;text-align:center;animation:pop .45s both}
+.scn:nth-child(2){animation-delay:.15s}.scn:nth-child(3){animation-delay:.3s}.scn:nth-child(4){animation-delay:.45s}
+.scn svg{width:44px;height:44px}
+.scn p{font-size:13.5px;line-height:1.6;margin-top:4px}
+.scn .pn{position:absolute;top:6px;inset-inline-start:8px;font-size:11px;color:var(--muted)}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.scn{animation:none}}
+.b-deep{border:1px dashed #b9cfc4;border-radius:14px;padding:10px 14px;margin:12px 0;background:transparent}
+.b-deep summary{cursor:pointer;color:var(--green);font-weight:600;font-size:14px}
+.b-deep h4{font-size:14.5px;margin:10px 0 2px}
+.b-deep p{font-size:14px;color:var(--ink)}
+.b-sit,.b-tasmee,.b-family{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:14px 0}
+.b-sit .q,.b-family .q{font-weight:600;margin-bottom:10px}
+.b-sit .why{margin-top:10px;font-size:14px;color:var(--green)}
+.seg-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.seg-tabs button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font-size:13px;color:var(--ink)}
+.seg-tabs button.on{background:var(--green);border-color:var(--green);color:#fff}
+.b-tasmee .sub{font-size:12.5px;color:var(--muted);margin:-6px 0 10px}
+.tq{display:block;width:100%;text-align:start;font-family:'Amiri Quran',serif;font-size:20px;line-height:2;background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 12px;margin-bottom:8px;color:var(--ink)}
+button.tq{cursor:pointer}
+.tq.ok{background:var(--green-soft);border-color:#b9d8c8}
+.tq.no{border-color:var(--red);background:var(--red-soft)}
+.tq.lis{display:flex;align-items:center;gap:10px}
+.play{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--green);background:#fff;color:var(--green);font-size:13px}
+.play.on{background:var(--green);color:#fff}
+.tmsg{font-size:13.5px;color:var(--muted);margin:4px 0 10px}
+.tmsg.done{color:var(--green);font-weight:600}
+.blank{display:inline-block;min-width:60px;border-bottom:2px dashed var(--gold);text-align:center;color:var(--gold)}
+.filled{color:var(--green);border-bottom:2px solid var(--green)}
+.link-btn{background:none;border:0;color:var(--muted);font-size:13px;text-decoration:underline;margin-top:4px}
+.nxt{margin-top:10px;width:100%}
+.b-family{background:var(--gold-soft);border-color:#e3cc98}
+.b-family .k{color:#7a5a17}
+.b-family details summary{cursor:pointer;font-size:13px;color:#7a5a17}
