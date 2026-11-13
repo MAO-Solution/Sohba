@@ -154,3 +154,24 @@ body[data-theme=friday]{--green:#1f5a5a;--green-2:#2c7a78;--green-soft:#e1efee}
 body[data-theme=ramadan]{--green:#2b2550;--green-2:#463c80;--green-soft:#e9e6f5;--gold:#c79a3c;--gold-soft:#f6ecd6}
 body[data-theme=ramadan] .hero::before{content:"";position:absolute;top:26px;left:30px;width:34px;height:34px;border-radius:50%;box-shadow:-9px 7px 0 0 #e7c873}
 body[data-theme=hajj]{--green:#3d3424;--green-2:#5a4c35;--green-soft:#efe8da}
+
+/* افتكر + طبّق النهارده */
+.b-quiz,.b-action{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:14px 0}
+.b-quiz .k,.b-action .k,.act-ask .k{font-size:12px;font-weight:600;color:var(--green);margin-bottom:6px}
+.b-quiz .q{font-weight:600;margin-bottom:10px}
+.opts{display:grid;gap:8px}
+.opt{text-align:start;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;font-size:14.5px;color:var(--ink)}
+.opt.ok{background:var(--green-soft);border-color:var(--green);color:var(--green);font-weight:600}
+.opt.no{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+.opt:disabled{cursor:default}
+.b-quiz .why{margin-top:10px;font-size:13.5px;color:var(--muted)}
+.b-quiz .why b{color:var(--ink)}
+.b-action{border-color:var(--gold);background:linear-gradient(135deg,var(--card),var(--gold-soft))}
+.b-action .k{color:#7a5a17}
+.b-action p{margin-bottom:10px}
+.act-ask{border-color:var(--gold)}
+.act-ask .from{font-size:12px;color:var(--muted)}
+.due{display:flex;align-items:center;text-decoration:none;color:inherit;border-color:var(--green)}
+.due h3{font-size:17px}.due p{font-size:13px;color:var(--muted)}
+.due .go{margin-inline-start:auto;color:var(--green);font-size:20px}
+.rev-mem{display:block;text-decoration:none;color:var(--green);font-size:14px}
