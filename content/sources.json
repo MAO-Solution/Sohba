@@ -1,8 +1,9 @@
 [
-  { "key": "mushaf",   "kind": "quran",  "title": "المصحف الشريف", "ref": "رواية حفص عن عاصم" },
-  { "key": "muyassar", "kind": "book",   "title": "التفسير الميسر", "ref": "مجمع الملك فهد لطباعة المصحف الشريف" },
-  { "key": "bukhari-muslim", "kind": "hadith", "title": "متفق عليه", "ref": "صحيح البخاري وصحيح مسلم" },
-  { "key": "bukhari",  "kind": "hadith", "title": "صحيح البخاري" },
-  { "key": "muslim",   "kind": "hadith", "title": "صحيح مسلم" },
-  { "key": "raheeq",   "kind": "book",   "title": "الرحيق المختوم", "ref": "صفي الرحمن المباركفوري" }
+  {"key": "mushaf", "kind": "quran", "title": "المصحف الشريف", "ref": "رواية حفص عن عاصم"},
+  {"key": "muyassar", "kind": "book", "title": "التفسير الميسر", "ref": "مجمع الملك فهد لطباعة المصحف الشريف"},
+  {"key": "bukhari-muslim", "kind": "hadith", "title": "متفق عليه", "ref": "صحيح البخاري وصحيح مسلم"},
+  {"key": "bukhari", "kind": "hadith", "title": "صحيح البخاري"},
+  {"key": "muslim", "kind": "hadith", "title": "صحيح مسلم"},
+  {"key": "raheeq", "kind": "book", "title": "الرحيق المختوم", "ref": "صفي الرحمن المباركفوري"},
+  {"key": "tirmidhi", "kind": "hadith", "title": "سنن الترمذي", "ref": "حديث حسن"}
 ]
