@@ -64,6 +64,7 @@ async function seed() {
             v.q && Array.isArray(v.options) && v.options.length >= 2 && Number.isInteger(v.best) && v.best >= 0 && v.best < v.options.length)))
           throw new Error(`Bad situation in lesson ${l.slug}`);
         if (b.type === 'scene' && !(Array.isArray(b.panels) && b.panels.length >= 2)) throw new Error(`Bad scene in lesson ${l.slug}`);
+        if (b.type === 'sequence' && !(Array.isArray(b.items) && b.items.length >= 3)) throw new Error(`Bad sequence in lesson ${l.slug}`);
       }
     }
 
