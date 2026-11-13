@@ -31,7 +31,11 @@
     const lessonsOf = (t) => D.lessons.filter((l) => l.track === t).sort((a, b) => a.sort - b.sort);
     const toBlock = ({ type, source, ...content }) => ({ type, content, source: source ? src(source).title : null, source_ref: source ? src(source).ref ?? null : null });
     let m;
-    if (path === '/tracks') return D.tracks.filter((t) => t.is_listed !== false).map((t) => ({ ...t, lessons: lessonsOf(t.slug).length }));
+    const metaOf = (l) => {
+      const q = l.blocks.filter((b) => b.type === 'quran' && b.surah && b.ayah);
+      return q.length ? { surah: q[0].surah, ayat: q.length, words: q.reduce((n, b) => n + b.body.split(/\s+/).filter((w) => /[\u0621-\u064A]/.test(w)).length, 0) } : {};
+    };
+    if (path === '/tracks') return D.tracks.filter((t) => t.is_listed !== false).map((t) => ({ ...t, lessons: lessonsOf(t.slug).length, slugs: lessonsOf(t.slug).map((l) => l.slug) }));
     if (path === '/seasons') return D.seasons.map((s) => {
       const l = D.lessons.find((x) => x.slug === s.lesson);
       return { key: s.key, rule: s.rule, theme: s.theme ?? null, lesson: l.slug, title: l.title, summary: l.summary,
@@ -40,13 +44,15 @@
     if ((m = path.match(/^\/tracks\/([a-z0-9-]+)$/))) {
       const t = D.tracks.find((x) => x.slug === m[1] && x.is_available);
       if (!t) throw new Error(404);
-      return { ...t, lessons: lessonsOf(t.slug).map(({ slug, title, summary, status }) => ({ slug, title, summary, status })) };
+      return { ...t, chapters: t.chapters || [], lessons: lessonsOf(t.slug).map((l) => ({ slug: l.slug, title: l.title, summary: l.summary, status: l.status, chapter: l.chapter ?? null, meta: metaOf(l) })) };
     }
     if ((m = path.match(/^\/lessons\/([a-z0-9-]+)$/))) {
       const l = D.lessons.find((x) => x.slug === m[1]);
       if (!l) throw new Error(404);
       const sib = lessonsOf(l.track); const nx = sib[sib.indexOf(l) + 1];
-      return { slug: l.slug, title: l.title, summary: l.summary, status: l.status, track: l.track,
+      const tr = D.tracks.find((t) => t.slug === l.track);
+      return { slug: l.slug, title: l.title, summary: l.summary, status: l.status, track: l.track, chapter: l.chapter ?? null, meta: metaOf(l),
+        chapter_title: (tr.chapters || []).find((c) => c.key === l.chapter)?.title ?? null,
         track_title: D.tracks.find((t) => t.slug === l.track).title, blocks: l.blocks.map(toBlock),
         next: nx ? { slug: nx.slug, title: nx.title } : null };
     }
@@ -132,7 +138,9 @@
   async function home() {
     const [tracks, daily, seasons] = await Promise.all([api('/tracks'), api('/daily'), activeSeasons()]);
     const featured = seasons.filter((s) => !s.rule.always);
-    const due = dueReviews(), act = pendingAction();
+    const due = dueReviews(), act = pendingAction(), last = store.get('sohba-last', null), dn = done();
+    const cur = (last && tracks.some((t) => t.slug === last.track)) ? last.track
+      : tracks.find((t) => t.is_available && t.slugs.some((x) => !dn.has(x)))?.slug;
     const d = daily.ayah ? `
       <div class="card daily">
         <div class="d-ayah">${esc(daily.ayah.content.body)} <span class="anum">﴿${AR(daily.ayah.content.ayah ?? '')}﴾</span></div>
@@ -146,6 +154,7 @@
         <div class="tag">صاحبك في طريقك لربنا، من أول خطوة</div>
       </header>
       ${ticker(seasons.flatMap((s) => s.ticker))}
+      ${last ? `<a class="card resume" href="#l-${esc(last.slug)}"><div><span class="k">كمّل من مكان ما وقفت</span><h3>${esc(last.title)}</h3><p>${esc(last.where || '')}</p></div><span class="go">‹</span></a>` : ''}
       ${act ? `<div class="card act-ask"><div class="k">${act.day === dayNum() - 1 ? 'امبارح' : 'قبل كده'} قلت هتعمل:</div>
         <p>${esc(act.body)}</p><p class="from">من درس «${esc(act.title)}»</p>
         <div class="row"><button class="btn pri" data-a="done">الحمد لله، عملتها</button><button class="btn sec" data-a="later">لسه، هحاول النهارده</button></div></div>` : ''}
@@ -154,19 +163,17 @@
         <a class="card season" href="#l-${esc(s.lesson)}">
           <div><h3>${esc(s.title)}</h3><p>${esc(s.summary)}</p></div><span class="go">‹</span>
         </a>`).join('')}
+      <div class="label">طريقك</div>
+      <div class="road">${tracks.map((t) => {
+        const n = t.slugs.length, k = t.slugs.filter((x) => dn.has(x)).length;
+        const state = !t.is_available ? 'soon' : n && k === n ? 'done' : t.slug === cur ? 'cur' : '';
+        return `<a class="stop ${state}" href="${t.is_available ? '#t-' + esc(t.slug) : '#'}">
+          <span class="pin">${state === 'done' ? '✓' : TRACK_MARK[t.slug] || '•'}</span>
+          <span class="sb"><b>${esc(t.title)}</b>${state === 'cur' ? '<em>إنت هنا</em>' : ''}${state === 'soon' ? '<em class="soon">قريبًا</em>' : ''}
+            <small>${esc(t.subtitle)}</small>
+            ${n ? `<span class="prog"><i style="width:${Math.round((k * 100) / n)}%"></i></span><small>${AR(k)} من ${AR(n)}</small>` : ''}</span></a>`;
+      }).join('')}</div>
       ${d ? `<div class="label">وِرد اليوم</div>${d}` : ''}
-      <div class="label">المسارات</div>
-      ${tracks.map((t) => t.is_available ? `
-        <a class="card track" href="#t-${esc(t.slug)}">
-          <div class="ic">${TRACK_MARK[t.slug] || '•'}</div>
-          <div><h3>${esc(t.title)}</h3><p>${esc(t.subtitle)} · ${AR(t.lessons)} دروس</p></div>
-          <span class="go">‹</span>
-        </a>` : `
-        <div class="card track soon">
-          <div class="ic">${TRACK_MARK[t.slug] || '•'}</div>
-          <div><h3>${esc(t.title)}</h3><p>${esc(t.subtitle)}</p></div>
-          <span class="badge push">قريباً</span>
-        </div>`).join('')}
       ${footer()}`;
   }
   async function homeView() {
@@ -182,17 +189,90 @@
     } };
   }
 
+  const memSet = () => new Set(store.get('sohba-mem', []));
+  // Arabic counting: ١ كلمة، ٢ كلمتين، ٣–١٠ كلمات، ١١+ كلمة
+  const count = (n, [one, two, few]) => n === 1 ? one : n === 2 ? two : `${AR(n)} ${n >= 3 && n <= 10 ? few : one}`;
+  const WORDS = ['كلمة', 'كلمتين', 'كلمات'], AYAT = ['آية', 'آيتين', 'آيات'];
+  const short = (title) => title.replace(/^سورة /, '');
   async function track(slug) {
     const t = await api('/tracks/' + slug);
     const dn = done();
-    return `
-      <div class="bar"><a class="back" href="#" aria-label="رجوع">→</a><span class="crumb">المسارات</span></div>
-      <header class="hero small"><h1>${esc(t.title)}</h1><div class="tag">${esc(t.subtitle)}</div></header>
-      ${t.lessons.map((l, i) => `
+    const head = `
+      <div class="bar"><a class="back" href="#" aria-label="رجوع">→</a><span class="crumb">طريقك</span></div>
+      <header class="hero small"><h1>${esc(t.title)}</h1><div class="tag">${esc(t.subtitle)}</div></header>`;
+    const row = (l, i) => `
         <a class="card lesson-row ${dn.has(l.slug) ? 'done' : ''}" href="#l-${esc(l.slug)}">
           <div class="n">${dn.has(l.slug) ? '✓' : AR(i + 1)}</div>
           <div><h3>${esc(l.title)}</h3><p>${esc(l.summary)}</p></div>
-        </a>`).join('') || '<div class="empty">الدروس جاية قريب إن شاء الله</div>'}
+        </a>`;
+    const ch = t.chapters || [];
+    if (ch.length && ch[0].n) { // the Quran: a shelf of 30 ajza'
+      return `${head}
+        <div class="label">الأجزاء</div>
+        <div class="shelf">${ch.map((c) => {
+          const ls = t.lessons.filter((l) => l.chapter === c.key), k = ls.filter((l) => dn.has(l.slug)).length;
+          const name = esc(c.title.replace(/^جزء /, ''));
+          return ls.length
+            ? `<a class="juz on${k === ls.length ? ' full' : ''}" href="#c-${esc(t.slug)}.${esc(c.key)}"><b>${AR(c.n)}</b><small>${name}</small><i style="width:${Math.round((k * 100) / ls.length)}%"></i></a>`
+            : `<div class="juz"><b>${AR(c.n)}</b><small>${name}</small></div>`;
+        }).join('')}</div>
+        <p class="shelf-note">الأجزاء الباقية جاية تباعًا، وكل جزء بيتفتح بعد ما محتواه يتراجع.</p>
+        ${footer()}`;
+    }
+    if (ch.length) { // grouped by period/topic
+      let i = 0;
+      return `${head}${ch.map((c) => {
+        const ls = t.lessons.filter((l) => l.chapter === c.key);
+        return ls.length ? `<div class="label">${esc(c.title)}</div>${ls.map((l) => row(l, i++)).join('')}` : '';
+      }).join('')}${footer()}`;
+    }
+    return `${head}${t.lessons.map(row).join('') || '<div class="empty">الدروس جاية قريب إن شاء الله</div>'}${footer()}`;
+  }
+
+  // A juz: surahs as a mosaic in mushaf order (tile size follows the ayah count), colored by progress.
+  async function chapter(trackSlug, key) {
+    const t = await api('/tracks/' + trackSlug);
+    const c = (t.chapters || []).find((x) => x.key === key);
+    if (!c) throw new Error(404);
+    const ls = t.lessons.filter((l) => l.chapter === key);
+    const dn = done(), mem = memSet(), due = new Set(dueReviews().map(([s]) => s));
+    const state = (s) => mem.has(s) ? 's-mem' : due.has(s) ? 's-due' : dn.has(s) ? 's-done' : '';
+    const plan = ls.filter((l) => l.meta?.words).sort((a, b) => a.meta.words - b.meta.words);
+    const next = plan.find((l) => !mem.has(l.slug)), got = plan.filter((l) => mem.has(l.slug)).length;
+    const ayat = ls.reduce((n, l) => n + (l.meta?.ayat || 0), 0);
+    return `
+      <div class="bar"><a class="back" href="#t-${esc(t.slug)}" aria-label="رجوع">→</a><span class="crumb">${esc(t.title)}</span></div>
+      <header class="hero small"><h1>${esc(c.title)}</h1><div class="tag">${AR(ls.length)} سورة · ${AR(ayat)} آية</div></header>
+      ${plan.length ? `<a class="card plan" href="#p-${esc(t.slug)}.${esc(key)}">
+        <div class="k">خطة الحفظ: نبدأ بالأسهل</div>
+        <h3>${next ? `سورتك الجاية: ${esc(short(next.title))}` : 'حفظت الجزء كله، ما شاء الله 🤍'}</h3>
+        <p>${AR(got)} من ${AR(plan.length)}${next ? ` · ${count(next.meta.words, WORDS)}` : ''}</p>
+        <span class="prog"><i style="width:${Math.round((got * 100) / plan.length)}%"></i></span></a>` : ''}
+      <div class="label">بترتيب المصحف</div>
+      <div class="mosaic">${ls.map((l) => `
+        <a class="tile ${state(l.slug)}" style="flex-grow:${Math.round(Math.sqrt(l.meta?.ayat || 1) * 10)}" href="#l-${esc(l.slug)}">
+          <b>${esc(short(l.title))}</b><small>${AR(l.meta?.ayat || '')}</small></a>`).join('')}</div>
+      <div class="legend"><span><i class="s-mem"></i>حفظتها</span><span><i class="s-done"></i>خلصت الدرس</span><span><i class="s-due"></i>مراجعة النهارده</span></div>
+      ${footer()}`;
+  }
+
+  // Memorization plan: the same surahs, shortest first (by word count).
+  async function plan(trackSlug, key) {
+    const t = await api('/tracks/' + trackSlug);
+    const c = (t.chapters || []).find((x) => x.key === key);
+    if (!c) throw new Error(404);
+    const mem = memSet();
+    const ls = t.lessons.filter((l) => l.chapter === key && l.meta?.words).sort((a, b) => a.meta.words - b.meta.words);
+    const next = ls.find((l) => !mem.has(l.slug));
+    return `
+      <div class="bar"><a class="back" href="#c-${esc(t.slug)}.${esc(key)}" aria-label="رجوع">→</a><span class="crumb">${esc(c.title)}</span></div>
+      <header class="hero small"><h1>خطة الحفظ</h1><div class="tag">من الأقصر للأطول · ${AR(mem.size ? ls.filter((l) => mem.has(l.slug)).length : 0)} من ${AR(ls.length)}</div></header>
+      <p class="b-note">رتبنا السور من الأقصر للأطول بعدد الكلمات. مش لازم تمشي بالترتيب، بس ده أسهل طريق تبدأ بيه. ولما تخلص وضع «احفظ» لآخر مستوى، دوس «حفظتها ✓».</p>
+      ${ls.map((l, i) => `
+        <a class="card lesson-row plan-row ${mem.has(l.slug) ? 'done' : ''}${l === next ? ' next' : ''}" href="#l-${esc(l.slug)}">
+          <div class="n">${mem.has(l.slug) ? '✓' : AR(i + 1)}</div>
+          <div><h3>${esc(short(l.title))} ${l === next ? '<span class="badge">ابدأ هنا</span>' : ''}</h3><p>${count(l.meta.words, WORDS)} · ${count(l.meta.ayat, AYAT)}</p></div>
+        </a>`).join('')}
       ${footer()}`;
   }
 
@@ -338,9 +418,11 @@
   async function lesson(slug) {
     const l = await api('/lessons/' + slug);
     const ctx = { slug: l.slug };
+    store.set('sohba-last', { slug: l.slug, title: l.title, track: l.track, where: l.chapter_title || l.track_title });
+    const backTo = l.chapter && /^juz-/.test(l.chapter) ? `#c-${l.track}.${l.chapter}` : `#t-${l.track}`;
     const body = l.blocks.map((b) => block(b, ctx)).join('');
     const html = `
-      <div class="bar"><a class="back" href="#t-${esc(l.track)}" aria-label="رجوع">→</a><span class="crumb">${esc(l.track_title)}</span></div>
+      <div class="bar"><a class="back" href="${esc(backTo)}" aria-label="رجوع">→</a><span class="crumb">${esc(l.chapter_title || l.track_title)}</span></div>
       <header class="hero small"><h1>${esc(l.title)}</h1><div class="tag">${esc(l.summary)}</div></header>
       ${l.status !== 'published' ? '<div class="draft">⚠ مسودة تحت المراجعة الشرعية، ومش هتظهر للناس قبل ما تتراجع.</div>' : ''}
       ${body}
@@ -357,12 +439,12 @@
       };
       bindQuizzes($app, ctx);
       bindAction($app, l, ctx.action);
-      if (ctx.memorize) mountMemorize(l.blocks.filter((b) => b.type === 'quran' && b.content.ayah).map((b) => b.content), l.slug);
+      if (ctx.memorize) mountMemorize(l.blocks.filter((b) => b.type === 'quran' && b.content.ayah).map((b) => b.content), l.slug, l.title);
     } };
   }
 
   /* ---------- memorize: progressive word hiding ---------- */
-  function mountMemorize(ayat, slug) {
+  function mountMemorize(ayat, slug, title) {
     const el = document.getElementById('mem');
     const LV = ['اقرا وبُص', 'آخر كلمة مستخبية', 'نص الكلام مستخبي', 'أول كلمة بس'];
     let lvl = 0;
@@ -373,10 +455,17 @@
         <h4>احفظ</h4>
         <div class="lv"><span>المستوى ${AR(lvl + 1)}: ${LV[lvl]}</span><span class="dots">${LV.map((_, i) => `<i class="${i <= lvl ? 'on' : ''}"></i>`).join('')}</span></div>
         ${ayat.map((a) => { const w = a.body.split(' '); return `<div class="ml">${w.map((x, i) => `<span class="wd ${hidden(w.length, i) ? 'hid' : ''}">${esc(x)}</span>`).join(' ')} <span class="anum">﴿${AR(a.ayah)}﴾</span></div>`; }).join('')}
-        <div class="row"><button class="btn sec" data-a="less">أسهل</button><button class="btn pri" data-a="more">خبّي أكتر</button></div>`;
+        <div class="row"><button class="btn sec" data-a="less">أسهل</button>${lvl < 3
+          ? '<button class="btn pri" data-a="more">خبّي أكتر</button>'
+          : `<button class="btn gold" data-a="got">${memSet().has(slug) ? 'حفظتها ✓' : 'حفظتها ✓ سجّلها'}</button>`}</div>`;
       el.querySelectorAll('.wd.hid').forEach((w) => (w.onclick = () => { w.classList.remove('hid'); w.classList.add('peek'); }));
       el.querySelector('[data-a=less]').onclick = () => { if (lvl > 0) { lvl--; draw(); } };
-      el.querySelector('[data-a=more]').onclick = () => { if (lvl < 3) { lvl++; draw(); } else toast('ده آخر مستوى. لو قلتها كلها من غير ما تبص، يبقى حفظتها 👏'); };
+      el.querySelector('[data-a=more]')?.addEventListener('click', () => { lvl++; draw(); if (lvl === 3) toast('آخر مستوى: لو قلتها كلها من غير ما تبص، يبقى حفظتها 👏'); });
+      el.querySelector('[data-a=got]')?.addEventListener('click', () => {
+        const m = memSet(); m.add(slug); store.set('sohba-mem', [...m]);
+        if (title) scheduleReview({ slug, title });
+        toast('ما شاء الله! هنفكّرك تراجعها عشان متتنسيش'); draw();
+      });
     };
     draw();
   }
@@ -391,6 +480,8 @@
     let out;
     try {
       if (h === 'review') out = await review();
+      else if (h.startsWith('c-')) out = await chapter(...h.slice(2).split('.'));
+      else if (h.startsWith('p-')) out = await plan(...h.slice(2).split('.'));
       else if (h.startsWith('t-')) out = await track(h.slice(2));
       else if (h.startsWith('l-')) out = await lesson(h.slice(2));
       else out = await homeView();

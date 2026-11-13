@@ -14,7 +14,8 @@ const wrap = (fn) => (req, res, next) => fn(req, res).catch(next);
 router.get('/tracks', wrap(async (_req, res) => {
   const { rows } = await pool.query(
     `SELECT t.slug, t.title, t.subtitle, t.is_available,
-            count(l.id) FILTER (WHERE l.status = ANY($1::lesson_status[]))::int AS lessons
+            count(l.id) FILTER (WHERE l.status = ANY($1::lesson_status[]))::int AS lessons,
+            coalesce(array_agg(l.slug ORDER BY l.sort) FILTER (WHERE l.status = ANY($1::lesson_status[])), '{}') AS slugs
        FROM tracks t LEFT JOIN lessons l ON l.track_id = t.id
       WHERE t.is_listed
       GROUP BY t.id ORDER BY t.sort`,
@@ -26,11 +27,11 @@ router.get('/tracks', wrap(async (_req, res) => {
 router.get('/tracks/:slug', wrap(async (req, res) => {
   if (!SLUG.test(req.params.slug)) return res.status(404).json({ error: 'not_found' });
   const { rows: [track] } = await pool.query(
-    'SELECT id, slug, title, subtitle, is_available FROM tracks WHERE slug = $1', [req.params.slug]
+    'SELECT id, slug, title, subtitle, is_available, chapters FROM tracks WHERE slug = $1', [req.params.slug]
   );
   if (!track || !track.is_available) return res.status(404).json({ error: 'not_found' });
   const { rows: lessons } = await pool.query(
-    `SELECT slug, title, summary, status FROM lessons
+    `SELECT slug, title, summary, status, chapter, meta FROM lessons
       WHERE track_id = $1 AND status = ANY($2::lesson_status[]) ORDER BY sort`,
     [track.id, VISIBLE]
   );
@@ -41,7 +42,8 @@ router.get('/tracks/:slug', wrap(async (req, res) => {
 router.get('/lessons/:slug', wrap(async (req, res) => {
   if (!SLUG.test(req.params.slug)) return res.status(404).json({ error: 'not_found' });
   const { rows: [lesson] } = await pool.query(
-    `SELECT l.id, l.slug, l.title, l.summary, l.status, l.sort, t.slug AS track, t.title AS track_title
+    `SELECT l.id, l.slug, l.title, l.summary, l.status, l.sort, l.chapter, l.meta, t.slug AS track, t.title AS track_title,
+            (SELECT c->>'title' FROM jsonb_array_elements(t.chapters) c WHERE c->>'key' = l.chapter) AS chapter_title
        FROM lessons l JOIN tracks t ON t.id = l.track_id
       WHERE l.slug = $1 AND l.status = ANY($2::lesson_status[])`,
     [req.params.slug, VISIBLE]

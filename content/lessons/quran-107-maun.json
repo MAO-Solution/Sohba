@@ -1,9 +1,10 @@
 {
   "track": "quran",
+  "chapter": "juz-30",
   "slug": "al-maun",
   "title": "سورة الماعون",
   "summary": "الدين أخلاق وصلاة · ٧ آيات",
-  "sort": 8,
+  "sort": 30,
   "status": "in_review",
   "blocks": [
     {

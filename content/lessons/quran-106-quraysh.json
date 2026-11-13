@@ -1,9 +1,10 @@
 {
   "track": "quran",
+  "chapter": "juz-30",
   "slug": "quraysh",
   "title": "سورة قريش",
   "summary": "اشكر اللي أكّلك وأمّنك · ٤ آيات",
-  "sort": 9,
+  "sort": 29,
   "status": "in_review",
   "blocks": [
     {

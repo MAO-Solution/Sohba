@@ -1,9 +1,10 @@
 {
   "track": "quran",
+  "chapter": "juz-30",
   "slug": "al-qadr",
   "title": "سورة القدر",
   "summary": "ليلة أحسن من ألف شهر · ٥ آيات",
-  "sort": 18,
+  "sort": 20,
   "status": "in_review",
   "blocks": [
     {

@@ -1,9 +1,10 @@
 {
   "track": "quran",
+  "chapter": "juz-30",
   "slug": "al-adiyat",
   "title": "سورة العاديات",
   "summary": "الإنسان جاحد لنعمة ربنا · ١١ آيات",
-  "sort": 15,
+  "sort": 23,
   "status": "in_review",
   "blocks": [
     {

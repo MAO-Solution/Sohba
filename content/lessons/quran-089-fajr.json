@@ -1,9 +1,10 @@
 {
   "track": "quran",
+  "chapter": "juz-30",
   "slug": "al-fajr",
   "title": "سورة الفجر",
   "summary": "يا أيتها النفس المطمئنة · ٣٠ آية",
-  "sort": 26,
+  "sort": 12,
   "status": "in_review",
   "blocks": [
     {

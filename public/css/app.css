@@ -175,3 +175,52 @@ body[data-theme=hajj]{--green:#3d3424;--green-2:#5a4c35;--green-soft:#efe8da}
 .due h3{font-size:17px}.due p{font-size:13px;color:var(--muted)}
 .due .go{margin-inline-start:auto;color:var(--green);font-size:20px}
 .rev-mem{display:block;text-decoration:none;color:var(--green);font-size:14px}
+
+/* طريقك: the home journey */
+.resume{display:flex;align-items:center;text-decoration:none;color:inherit;border-color:var(--green)}
+.resume .k{font-size:12px;color:var(--green);font-weight:600}
+.resume h3{font-size:17px}.resume p{font-size:12.5px;color:var(--muted)}
+.resume .go{margin-inline-start:auto;color:var(--green);font-size:20px}
+.road{position:relative;padding-inline-start:4px}
+.road::before{content:"";position:absolute;inset-block:22px 22px;inset-inline-start:25px;border-inline-start:2px dashed var(--line)}
+.stop{position:relative;display:flex;gap:14px;align-items:flex-start;padding:10px 0;text-decoration:none;color:inherit}
+.pin{position:relative;z-index:1;flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:1.5px solid var(--line);color:var(--muted);font-weight:700;font-size:15px}
+.stop.cur .pin{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 0 0 5px var(--green-soft)}
+.stop.done .pin{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+.stop.soon{opacity:.55;pointer-events:none}
+.sb{flex:1;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:block}
+.stop.cur .sb{border-color:var(--green)}
+.sb b{font-size:16px;font-weight:600}
+.sb em{font-style:normal;font-size:11px;background:var(--green);color:#fff;border-radius:99px;padding:1px 8px;margin-inline-start:8px;vertical-align:2px}
+.sb em.soon{background:var(--gold-soft);color:#7a5a17}
+.sb small{display:block;font-size:12.5px;color:var(--muted)}
+.prog{display:block;height:5px;border-radius:3px;background:var(--line);overflow:hidden;margin:8px 0 3px}
+.prog i{display:block;height:100%;background:var(--green);border-radius:3px}
+
+/* الكُتّاب: shelf of 30 ajza' */
+.shelf{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.juz{position:relative;aspect-ratio:1/1.15;border-radius:12px;border:1px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;overflow:hidden;background:transparent}
+.juz b{font-size:18px;font-weight:600}
+.juz small{font-size:10.5px;line-height:1.3;text-align:center;padding:0 2px}
+.juz.on{border:1px solid var(--green);background:var(--card);color:var(--green)}
+.juz.on i{position:absolute;inset-inline-start:0;bottom:0;height:4px;background:var(--green)}
+.juz.full{background:var(--green);color:#fff}
+.shelf-note{font-size:12.5px;color:var(--muted);margin-top:10px}
+
+/* جزء: surah mosaic + memorization plan */
+.plan{display:block;text-decoration:none;color:inherit;border-color:var(--gold);background:linear-gradient(135deg,var(--card),var(--gold-soft))}
+.plan .k{font-size:12px;font-weight:600;color:#7a5a17}
+.plan h3{font-size:17px}.plan p{font-size:12.5px;color:var(--muted)}
+.plan .prog i{background:var(--gold)}
+.mosaic{display:flex;flex-wrap:wrap;gap:6px}
+.tile{flex-basis:64px;min-height:58px;border-radius:12px;border:1px solid var(--line);background:var(--card);padding:8px 10px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;justify-content:space-between}
+.tile b{font-family:'Amiri Quran',serif;font-weight:400;font-size:17px;line-height:1.5}
+.tile small{font-size:11px;color:var(--muted)}
+.tile.s-done{background:var(--green-soft);border-color:#b9d8c8}
+.tile.s-mem{background:var(--green);border-color:var(--green);color:#fff}
+.tile.s-mem small{color:#d5ebe0}
+.tile.s-due{background:var(--gold-soft);border-color:#d9bf86}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:-1px;border:1px solid var(--line)}
+.legend i.s-mem{background:var(--green)}.legend i.s-done{background:var(--green-soft)}.legend i.s-due{background:var(--gold-soft)}
+.plan-row.next{border-color:var(--gold)}

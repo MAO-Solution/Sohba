@@ -1,9 +1,10 @@
 {
   "track": "quran",
+  "chapter": "juz-30",
   "slug": "al-fil",
   "title": "سورة الفيل",
   "summary": "لما جيش جه يهدم الكعبة · ٥ آيات",
-  "sort": 10,
+  "sort": 28,
   "status": "in_review",
   "blocks": [
     {

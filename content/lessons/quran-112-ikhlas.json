@@ -1,9 +1,10 @@
 {
   "track": "quran",
+  "chapter": "juz-30",
   "slug": "al-ikhlas",
   "title": "سورة الإخلاص",
   "summary": "مين هو ربنا؟ · ٤ آيات",
-  "sort": 3,
+  "sort": 35,
   "status": "in_review",
   "blocks": [
     {
