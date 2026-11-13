@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import api from './routes/api.js';
+import admin from './routes/admin.js';
 import { pool } from './db.js';
 
 const app = express();
@@ -37,6 +38,16 @@ app.get('/healthz', async (_req, res) => {
 
 app.use('/api', api);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'not_found' }));
+
+app.use('/admin/api', admin);
+// Admin shell: same tracing trick as index.html below. Strict CSP: no inline script anywhere.
+const adminShell = readFileSync(new URL('../public/admin.html', import.meta.url), 'utf8');
+app.get('/admin', (_req, res) => res.type('html').set({
+  'Cache-Control': 'no-store',
+  'X-Robots-Tag': 'noindex',
+  'Content-Security-Policy': "default-src 'self'; style-src 'self' https://fonts.googleapis.com; " +
+    "font-src https://fonts.gstatic.com; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+}).send(adminShell));
 
 app.use(express.static(publicDir, { maxAge: '1h', index: 'index.html' }));
 // The app shell is read once at startup. Referencing it with new URL(..., import.meta.url) lets

@@ -106,7 +106,7 @@
         <div class="card track soon">
           <div class="ic">${TRACK_MARK[t.slug] || '•'}</div>
           <div><h3>${esc(t.title)}</h3><p>${esc(t.subtitle)}</p></div>
-          <span class="badge" style="margin-inline-start:auto">قريباً</span>
+          <span class="badge push">قريباً</span>
         </div>`).join('')}
       ${footer()}`;
   }
@@ -153,7 +153,7 @@
         return `<div class="b-quote"><div class="body">${esc(c.body)}</div>${srcLine(b)}</div>`;
       case 'map': return `
         <div class="map">
-          <div class="label" style="margin-top:0">${esc(c.label || 'خريطة السورة')}</div>
+          <div class="label flush">${esc(c.label || 'خريطة السورة')}</div>
           ${(c.segments || []).map((s, i) => `
             ${i ? '<div class="arrow">▼</div>' : ''}
             <div class="seg ${s.tone === 'b' ? 'b' : 'a'}">
@@ -215,6 +215,10 @@
     };
     draw();
   }
+
+  // The admin review page reuses the exact same renderer, so the sheikh reviews what users will see.
+  window.SohbaUI = { block, mountMemorize, esc, AR };
+  if (!$app) return; // loaded as a library (admin page): no router, no service worker
 
   /* ---------- router ---------- */
   async function route() {

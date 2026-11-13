@@ -1,0 +1,26 @@
+/* صحبة — admin / review pages. Builds on app.css. */
+.adm-top{display:flex;align-items:center;justify-content:space-between;padding:14px 0;font-size:13px;color:var(--muted)}
+.adm-top b{color:var(--ink)}
+.adm-top button{background:none;border:0;color:var(--red);font-size:13px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px}
+.tabs a{flex:none;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:6px 12px;font-size:13px;text-decoration:none;color:var(--ink)}
+.tabs a.on{background:var(--green);border-color:var(--green);color:#fff}
+.adm-row{display:block;text-decoration:none;color:inherit}
+.adm-row h3{font-size:16px}
+.adm-row p{font-size:12.5px;color:var(--muted)}
+.adm-row .note{color:var(--red);margin-top:4px}
+.st{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600}
+.st.draft{background:#eee;color:#555}
+.st.in_review{background:var(--gold-soft);color:#7a5a17}
+.st.approved{background:var(--green-soft);color:var(--green)}
+.st.published{background:var(--green);color:#fff}
+.panel{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:12px 0;margin-top:16px}
+.panel textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:12px;padding:10px;font:inherit;font-size:14px;background:#fff}
+.btn.red{background:var(--red);color:#fff}
+.hist{font-size:12.5px;color:var(--muted);list-style:none}
+.hist li{border-bottom:1px dashed var(--line);padding:8px 0}
+.hist .n{color:var(--ink);white-space:pre-wrap}
+.login{margin-top:20vh}
+.login input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;margin-bottom:10px;background:#fff}
+.err{color:var(--red);font-size:13px;min-height:20px}
+.login .b-heading{margin-top:0}

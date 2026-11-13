@@ -17,6 +17,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  if (url.pathname.startsWith('/admin')) return; // staff pages: always network, never cached
 
   if (url.pathname.startsWith('/api/')) {
     e.respondWith(
