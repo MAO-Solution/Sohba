@@ -217,7 +217,7 @@
           <article class="ayah">
             <div class="qt">${esc(c.body)} <span class="anum">﴿${AR(c.ayah)}﴾</span></div>
             ${c.egy ? `<div class="egy">${esc(c.egy)}</div>` : ''}
-            ${c.tafsir ? `<details><summary>التفسير الميسر (المصدر)</summary><div class="tf">${esc(c.tafsir)}</div></details>` : ''}
+            ${c.tafsir ? `<details><summary>التفسير الميسر${c.tafsir_to ? ` للآيات ${AR(c.ayah)}–${AR(c.tafsir_to)}` : ''} (المصدر)</summary><div class="tf">${esc(c.tafsir)}</div></details>` : ''}
             <a class="listen" href="https://quran.com/${Number(c.surah)}/${Number(c.ayah)}" target="_blank" rel="noopener">🔊 اسمع الآية</a>
           </article>`;
         }
