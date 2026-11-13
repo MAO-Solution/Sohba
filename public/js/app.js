@@ -218,7 +218,8 @@
         <div class="label">الأجزاء</div>
         <div class="shelf">${ch.map((c) => {
           const ls = t.lessons.filter((l) => l.chapter === c.key), k = ls.filter((l) => dn.has(l.slug)).length;
-          const name = esc(c.title.replace(/^جزء /, ''));
+          // the shelf shows where each juz starts (what people see in their mushaf), not its old opening-word name
+          const name = esc(c.from ? `${c.from}${c.from_ayah > 1 ? ' ' + AR(c.from_ayah) : ''}` : c.title);
           return ls.length
             ? `<a class="juz on${k === ls.length ? ' full' : ''}" href="#c-${esc(t.slug)}.${esc(c.key)}"><b>${AR(c.n)}</b><small>${name}</small><i style="width:${Math.round((k * 100) / ls.length)}%"></i></a>`
             : `<div class="juz"><b>${AR(c.n)}</b><small>${name}</small></div>`;
@@ -249,7 +250,7 @@
     const ayat = ls.reduce((n, l) => n + (l.meta?.ayat || 0), 0);
     return `
       <div class="bar"><a class="back" href="#t-${esc(t.slug)}" aria-label="رجوع">→</a><span class="crumb">${esc(t.title)}</span></div>
-      <header class="hero small"><h1>${esc(c.title)}</h1><div class="tag">${AR(ls.length)} سورة · ${AR(ayat)} آية</div></header>
+      <header class="hero small"><h1>${esc(c.title)}</h1><div class="tag">${c.full && c.full !== c.title ? esc(c.full) + ' · ' : ''}${c.from ? `من ${esc(c.from)}${c.from_ayah > 1 ? ' ' + AR(c.from_ayah) : ''} إلى ${esc(c.to)}${c.to_ayah ? ' ' + AR(c.to_ayah) : ''} · ` : ''}${AR(ls.length)} سورة · ${AR(ayat)} آية</div></header>
       ${plan.length ? `<a class="card plan" href="#p-${esc(t.slug)}.${esc(key)}">
         <div class="k">خطة الحفظ: نبدأ بالأسهل</div>
         <h3>${next ? `سورتك الجاية: ${esc(short(next.title))}` : 'حفظت الجزء كله، ما شاء الله 🤍'}</h3>
