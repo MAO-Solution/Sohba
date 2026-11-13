@@ -137,3 +137,20 @@ details[open] summary::after{content:"−"}
 .b-link p{font-size:13.5px;color:#3b4740}
 .b-link .site{font-size:11.5px;color:var(--muted)}
 .b-link .go{margin-inline-start:auto;color:var(--gold);font-size:18px}
+
+/* seasons: ticker, card, themes */
+.ticker{overflow:hidden;margin:-6px -16px 14px;background:var(--gold-soft);border-block:1px solid var(--line);font-size:13.5px;color:#6b5418}
+.tk-track{display:flex;width:max-content;animation:tk 45s linear infinite}
+.ticker:hover .tk-track,.ticker:active .tk-track{animation-play-state:paused}
+.tk-run{display:flex;align-items:center;gap:14px;padding:7px 7px;white-space:nowrap}
+.tk-run i{font-style:normal;color:var(--gold);font-size:10px}
+@keyframes tk{from{transform:translateX(0)}to{transform:translateX(50%)}}
+@media (prefers-reduced-motion:reduce){.tk-track{animation:none;width:auto}.tk-run{white-space:normal;flex-wrap:wrap}.tk-run[aria-hidden]{display:none}}
+.season{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;border-color:var(--gold);background:linear-gradient(135deg,var(--card),var(--gold-soft))}
+.season h3{font-size:17px}
+.season p{font-size:13px;color:var(--muted)}
+.season .go{margin-inline-start:auto;color:var(--gold);font-size:20px}
+body[data-theme=friday]{--green:#1f5a5a;--green-2:#2c7a78;--green-soft:#e1efee}
+body[data-theme=ramadan]{--green:#2b2550;--green-2:#463c80;--green-soft:#e9e6f5;--gold:#c79a3c;--gold-soft:#f6ecd6}
+body[data-theme=ramadan] .hero::before{content:"";position:absolute;top:26px;left:30px;width:34px;height:34px;border-radius:50%;box-shadow:-9px 7px 0 0 #e7c873}
+body[data-theme=hajj]{--green:#3d3424;--green-2:#5a4c35;--green-soft:#efe8da}

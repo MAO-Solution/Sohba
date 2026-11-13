@@ -31,9 +31,25 @@ npm run dev                 # http://localhost:3000
 
 1. اعمل import للـ repo من vercel.com/new. هيتعرف على Express لوحده من `app.js`.
 2. ضيف Environment Variables: `DATABASE_URL` (من Neon) و`PREVIEW_DRAFTS=true` لحد الإطلاق.
-3. `vercel-build` بيشغّل الـ migrate والـ seed مع كل deploy.
+3. `vercel-build` بيشغّل الـ migrate والـ seed مع deploy الـ **production** بس. الـ preview deploys (بتاعة الـ PRs) مبتلمسش الداتابيز.
 
 `render.yaml` موجود كبديل لو حبينا سيرفر دايم.
+
+## المواسم
+
+`content/seasons.json` بيحدد إمتى كل موسم يظهر، وكل موسم بيشاور على درس عادي في قسم مخفي (`mawasim`)، فنصوصه بتعدي على نفس المراجعة الشرعية.
+
+| القاعدة | المعنى |
+|---|---|
+| `{"weekday":5}` | كل جمعة |
+| `{"hijri_month":9}` | رمضان كله |
+| `{"hijri_month":12,"from":1,"to":10}` | العشر من ذي الحجة |
+| `{"always":true}` | طول الوقت (للشريط) |
+
+- التاريخ الهجري بيتحسب على جهاز المستخدم بتقويم أم القرى (`Intl`). لو رؤية الهلال في مصر اختلفت، ضيف `"shift": 1` أو `-1` للقاعدة.
+- أول موسم شغال وليه `theme` بيغيّر ألوان التطبيق (`friday`, `ramadan`, `hajj`).
+- بلوك `ticker` في درس الموسم بيغذّي الشريط اللي تحت الهيدر.
+- للتجربة: `/?date=2027-02-15`.
 
 ## الـ API
 
@@ -43,6 +59,7 @@ npm run dev                 # http://localhost:3000
 | `GET /api/tracks/:slug` | المسار ودروسه |
 | `GET /api/lessons/:slug` | الدرس بالبلوكات والمصادر والدرس اللي بعده |
 | `GET /api/daily` | وِرد اليوم: آية ودعاء، ثابتين طول اليوم |
+| `GET /api/seasons` | المواسم وقواعدها وجمل الشريط (المراجعة بس) |
 | `GET /healthz` | فحص السيرفر والـ DB |
 
 ## المراجعة الشرعية (`/admin`)

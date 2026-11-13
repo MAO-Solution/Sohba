@@ -16,6 +16,7 @@ router.get('/tracks', wrap(async (_req, res) => {
     `SELECT t.slug, t.title, t.subtitle, t.is_available,
             count(l.id) FILTER (WHERE l.status = ANY($1::lesson_status[]))::int AS lessons
        FROM tracks t LEFT JOIN lessons l ON l.track_id = t.id
+      WHERE t.is_listed
       GROUP BY t.id ORDER BY t.sort`,
     [VISIBLE]
   );
@@ -64,6 +65,22 @@ router.get('/lessons/:slug', wrap(async (req, res) => {
   ]);
   delete lesson.id; delete lesson.sort;
   res.json({ ...lesson, blocks, next: next ?? null });
+}));
+
+// Seasons: the client picks the active ones by its own (local + hijri) date.
+// Only seasons whose lesson is visible are returned, so unreviewed text never reaches the ticker.
+router.get('/seasons', wrap(async (_req, res) => {
+  const { rows } = await pool.query(
+    `SELECT s.key, s.rule, s.theme, l.slug AS lesson, l.title, l.summary,
+            coalesce((SELECT jsonb_agg(t.item ORDER BY b.sort, t.n)
+                        FROM blocks b, jsonb_array_elements_text(b.content->'items') WITH ORDINALITY AS t(item, n)
+                       WHERE b.lesson_id = l.id AND b.type = 'ticker'), '[]') AS ticker
+       FROM seasons s JOIN lessons l ON l.id = s.lesson_id
+      WHERE l.status = ANY($1::lesson_status[])
+      ORDER BY s.sort`,
+    [VISIBLE]
+  );
+  res.set('Cache-Control', 'public, max-age=300').json(rows);
 }));
 
 // Daily dose: one ayah + one dua, stable for the whole day.

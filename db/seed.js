@@ -23,7 +23,7 @@ const hashLesson = (l) =>
   createHash('sha256').update(canonical({ title: l.title, summary: l.summary ?? null, blocks: l.blocks })).digest('hex');
 
 async function seed() {
-  const { tracks, sources, lessons } = await loadContent();
+  const { tracks, sources, lessons, seasons } = await loadContent();
   const client = await pool.connect();
   const stats = { inserted: 0, changed: 0, unchanged: 0, backToReview: [] };
   try {
@@ -33,9 +33,9 @@ async function seed() {
 
     for (const t of tracks) {
       await client.query(
-        `INSERT INTO tracks (slug, title, subtitle, sort, is_available) VALUES ($1,$2,$3,$4,$5)
-         ON CONFLICT (slug) DO UPDATE SET title=$2, subtitle=$3, sort=$4, is_available=$5`,
-        [t.slug, t.title, t.subtitle, t.sort, t.is_available]
+        `INSERT INTO tracks (slug, title, subtitle, sort, is_available, is_listed) VALUES ($1,$2,$3,$4,$5,$6)
+         ON CONFLICT (slug) DO UPDATE SET title=$2, subtitle=$3, sort=$4, is_available=$5, is_listed=$6`,
+        [t.slug, t.title, t.subtitle, t.sort, t.is_available, t.is_listed ?? true]
       );
     }
     for (const s of sources) {
@@ -102,6 +102,17 @@ async function seed() {
           [lessonId, i + 1, type, content, source ? srcId[source] : null]
         );
       }
+    }
+
+    // Seasons are schedule config (the reviewed text lives in their lessons), so a full replace is fine.
+    await client.query('DELETE FROM seasons');
+    for (const [i, s] of seasons.entries()) {
+      const { rows: [l] } = await client.query('SELECT id FROM lessons WHERE slug = $1', [s.lesson]);
+      if (!l) throw new Error(`Season "${s.key}" points to unknown lesson "${s.lesson}"`);
+      await client.query(
+        'INSERT INTO seasons (key, lesson_id, rule, theme, sort) VALUES ($1,$2,$3,$4,$5)',
+        [s.key, l.id, s.rule, s.theme ?? null, i]
+      );
     }
 
     await client.query('COMMIT');

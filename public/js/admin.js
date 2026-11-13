@@ -71,7 +71,7 @@
 
   async function lesson(slug) {
     const l = await api('/lessons/' + slug);
-    const ctx = {};
+    const ctx = { admin: true };
     const html = `${top()}
       <div class="bar"><a class="back" href="#s-${l.status}" aria-label="رجوع">→</a>
         <span class="crumb">${esc(l.track_title)} · <span class="st ${l.status}">${STATUS[l.status]}</span></span></div>

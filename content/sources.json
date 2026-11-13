@@ -6,5 +6,6 @@
   {"key": "muslim", "kind": "hadith", "title": "صحيح مسلم"},
   {"key": "raheeq", "kind": "book", "title": "الرحيق المختوم", "ref": "صفي الرحمن المباركفوري"},
   {"key": "tirmidhi", "kind": "hadith", "title": "سنن الترمذي", "ref": "حديث حسن"},
-  {"key": "ibn-majah", "kind": "hadith", "title": "سنن ابن ماجه", "ref": "حديث حسن"}
+  {"key": "ibn-majah", "kind": "hadith", "title": "سنن ابن ماجه", "ref": "حديث حسن"},
+  {"key": "abu-dawud", "kind": "hadith", "title": "سنن أبي داود"}
 ]

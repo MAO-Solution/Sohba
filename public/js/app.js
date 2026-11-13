@@ -31,7 +31,12 @@
     const lessonsOf = (t) => D.lessons.filter((l) => l.track === t).sort((a, b) => a.sort - b.sort);
     const toBlock = ({ type, source, ...content }) => ({ type, content, source: source ? src(source).title : null, source_ref: source ? src(source).ref ?? null : null });
     let m;
-    if (path === '/tracks') return D.tracks.map((t) => ({ ...t, lessons: lessonsOf(t.slug).length }));
+    if (path === '/tracks') return D.tracks.filter((t) => t.is_listed !== false).map((t) => ({ ...t, lessons: lessonsOf(t.slug).length }));
+    if (path === '/seasons') return D.seasons.map((s) => {
+      const l = D.lessons.find((x) => x.slug === s.lesson);
+      return { key: s.key, rule: s.rule, theme: s.theme ?? null, lesson: l.slug, title: l.title, summary: l.summary,
+        ticker: l.blocks.filter((b) => b.type === 'ticker').flatMap((b) => b.items) };
+    });
     if ((m = path.match(/^\/tracks\/([a-z0-9-]+)$/))) {
       const t = D.tracks.find((x) => x.slug === m[1] && x.is_available);
       if (!t) throw new Error(404);
@@ -80,9 +85,53 @@
       صحبة · من ماو سوليوشنز
     </div>`;
 
+  /* ---------- seasons: rules evaluated on the user's own date (and hijri date) ---------- */
+  // ?date=2027-02-15 lets us preview a season on any day.
+  const today = () => {
+    const q = new URLSearchParams(location.search).get('date');
+    const d = q && /^\d{4}-\d{2}-\d{2}$/.test(q) ? new Date(q + 'T12:00:00') : new Date();
+    return isNaN(d) ? new Date() : d;
+  };
+  function hijri(date) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric' }).formatToParts(date);
+      const get = (t) => Number(parts.find((p) => p.type === t)?.value);
+      return { month: get('month'), day: get('day') };
+    } catch { return null; } // old browser without the hijri calendar: hijri seasons just don't show
+  }
+  function isActive(rule, now) {
+    if (rule.always) return true;
+    if (rule.weekday !== undefined) return now.getDay() === rule.weekday;
+    if (rule.hijri_month) {
+      // shift: correct a day when Egypt's moon sighting differs from Umm al-Qura
+      const h = hijri(new Date(now.getTime() + (rule.shift || 0) * 864e5));
+      return !!h && h.month === rule.hijri_month && h.day >= (rule.from || 1) && h.day <= (rule.to || 30);
+    }
+    return false;
+  }
+  async function activeSeasons() {
+    const all = await api('/seasons').catch(() => []);
+    const now = today();
+    const on = all.filter((s) => isActive(s.rule, now));
+    const theme = on.find((s) => s.theme)?.theme;
+    if (theme) document.body.dataset.theme = theme; else delete document.body.dataset.theme;
+    return on;
+  }
+  const ticker = (items) => {
+    if (!items.length) return '';
+    let run = items; // each run must be wider than the screen for a seamless loop
+    while (run.join('').length < 140) run = run.concat(items);
+    return ticker_(run);
+  };
+  const ticker_ = (items) => `
+    <div class="ticker" role="marquee" aria-label="تذكير">
+      <div class="tk-track">${[0, 1].map((k) => `<div class="tk-run"${k ? ' aria-hidden="true"' : ''}>${items.map((x) => `<span>${esc(x)}</span>`).join('<i>✦</i>')}<i>✦</i></div>`).join('')}</div>
+    </div>`;
+
   /* ---------- views ---------- */
   async function home() {
-    const [tracks, daily] = await Promise.all([api('/tracks'), api('/daily')]);
+    const [tracks, daily, seasons] = await Promise.all([api('/tracks'), api('/daily'), activeSeasons()]);
+    const featured = seasons.filter((s) => !s.rule.always);
     const d = daily.ayah ? `
       <div class="card daily">
         <div class="d-ayah">${esc(daily.ayah.content.body)} <span class="anum">﴿${AR(daily.ayah.content.ayah ?? '')}﴾</span></div>
@@ -95,6 +144,11 @@
         <h1>صحبة</h1>
         <div class="tag">صاحبك في طريقك لربنا، من أول خطوة</div>
       </header>
+      ${ticker(seasons.flatMap((s) => s.ticker))}
+      ${featured.map((s) => `
+        <a class="card season" href="#l-${esc(s.lesson)}">
+          <div><h3>${esc(s.title)}</h3><p>${esc(s.summary)}</p></div><span class="go">‹</span>
+        </a>`).join('')}
       ${d ? `<div class="label">وِرد اليوم</div>${d}` : ''}
       <div class="label">المسارات</div>
       ${tracks.map((t) => t.is_available ? `
@@ -169,6 +223,8 @@
         return `<a class="b-link" href="${esc(safe)}" target="_blank" rel="noopener">
           <div><h4>${esc(c.title)}</h4><p>${esc(c.desc || '')}</p><span class="site">${esc(c.site || '')}</span></div><span class="go">↗</span></a>`;
       }
+      // The ticker lines show on the home bar, not inside the lesson. The admin preview lists them for review.
+      case 'ticker': return ctx.admin ? `<div class="b-list"><h4>جمل الشريط</h4><ol>${(c.items || []).map((x) => `<li>${esc(x)}</li>`).join('')}</ol></div>` : '';
       default: return '';
     }
   }
@@ -237,6 +293,7 @@
     after?.();
   }
   window.addEventListener('hashchange', route);
+  activeSeasons(); // apply the season theme even when the app opens straight on a lesson
   route();
 
   if (!PREVIEW && 'serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
