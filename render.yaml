@@ -4,6 +4,7 @@ services:
     name: sohba
     runtime: node
     plan: free
+    region: frankfurt     # closest to Egypt; keep Neon in Frankfurt too
     buildCommand: npm ci
     # content/ is the source of truth until /admin exists, so re-seed on every deploy (idempotent).
     startCommand: npm run migrate && npm run seed && npm start
