@@ -11,6 +11,7 @@ PWA بـ Node/Express + PostgreSQL + Vanilla JS.
 - المحتوى كله في `content/` كملفات JSON، وده بيخلي المراجعة الشرعية تتعمل على Git.
 - أي درس حالته مش `published` مبيوصلش للناس. والـ DB نفسها بترفض `approved` أو `published` من غير `reviewed_by`.
 - أي آية أو حديث أو دعاء لازم يكون ليه `source`، والـ DB بترفض غير كده.
+- حالة المراجعة مكانها الـ DB مش Git: الـ `status` اللي في الـ JSON بيتاخد بس أول مرة الدرس يتضاف. بعد كده الـ seed مبيلمسهاش، إلا لو محتوى درس `approved` أو `published` اتغير (`content_hash`)، ساعتها بيرجع `in_review` لوحده عشان يتراجع تاني.
 
 ## التشغيل
 
