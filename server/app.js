@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'node:path';
+import { readFileSync } from 'node:fs';
 import api from './routes/api.js';
 import { pool } from './db.js';
 
@@ -38,7 +39,10 @@ app.use('/api', api);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'not_found' }));
 
 app.use(express.static(publicDir, { maxAge: '1h', index: 'index.html' }));
-app.get('*', (_req, res) => res.sendFile(path.join(publicDir, 'index.html')));
+// The app shell is read once at startup. Referencing it with new URL(..., import.meta.url) lets
+// Vercel's file tracing bundle it into the function (on Vercel, "/" reaches the function, not the CDN).
+const shell = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+app.get('*', (_req, res) => res.type('html').set('Cache-Control', 'no-cache').send(shell));
 
 app.use((err, _req, res, _next) => {
   console.error(err);
