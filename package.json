@@ -12,7 +12,7 @@
     "seed": "node --env-file-if-exists=.env db/seed.js",
     "user": "node --env-file-if-exists=.env scripts/create-user.js",
     "build:preview": "node scripts/build-preview.js",
-    "vercel-build": "node db/migrate.js && node db/seed.js"
+    "vercel-build": "if [ \"$VERCEL_ENV\" = production ]; then node db/migrate.js && node db/seed.js; else echo 'Preview deploy: skipping DB migrate/seed (production DB)'; fi"
   },
   "dependencies": {
     "express": "^4.21.2",

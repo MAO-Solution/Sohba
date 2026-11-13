@@ -1,0 +1,6 @@
+[
+  {"key": "ramadan", "lesson": "ramadan", "theme": "ramadan", "rule": {"hijri_month": 9}},
+  {"key": "dhul-hijja", "lesson": "dhul-hijja", "theme": "hajj", "rule": {"hijri_month": 12, "from": 1, "to": 10}},
+  {"key": "friday", "lesson": "jumuah", "theme": "friday", "rule": {"weekday": 5}},
+  {"key": "always", "lesson": "light-dhikr", "rule": {"always": true}}
+]

@@ -12,5 +12,6 @@ export async function loadContent() {
   const lessons = await Promise.all(
     (await readdir(dir)).filter((f) => f.endsWith('.json')).sort().map((f) => readJson(path.join(dir, f)))
   );
-  return { tracks, sources, lessons };
+  const seasons = await readJson(path.join(root, 'seasons.json'));
+  return { tracks, sources, lessons, seasons };
 }
