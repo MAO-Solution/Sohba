@@ -62,9 +62,16 @@
     wave: '<path d="M4 16c3-5 5-5 8 0s5 5 8 0 5-5 8 0"/><path d="M8 23c2-2 4-2 6 0" opacity=".5"/>',
     heart: '<path d="M16 27s-10-6-10-13a6 6 0 0 1 10-4 6 6 0 0 1 10 4c0 7-10 13-10 13z"/><path d="M13 15l3 3 3-3"/>',
     pair: '<circle cx="11" cy="16" r="6" stroke-dasharray="2 2.5"/><circle cx="21" cy="16" r="6"/>',
+    one: '<circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="2.5"/>',
+    none: '<circle cx="16" cy="16" r="10"/><path d="M9 23L23 9"/>',
+    star: '<path d="M16 5l3.2 6.6 7.3 1-5.3 5.1 1.3 7.2L16 21.5l-6.5 3.4 1.3-7.2-5.3-5.1 7.3-1z"/>',
+    sun: '<path d="M4 22h24"/><path d="M9 22a7 7 0 0 1 14 0"/><path d="M16 8v3M8 12l2 2M24 12l-2 2"/>',
+    moon: '<path d="M21 6a10 10 0 1 0 5 15A8 8 0 0 1 21 6z"/>',
+    knot: '<path d="M6 16h20"/><circle cx="12" cy="16" r="3"/><circle cx="20" cy="16" r="3"/>',
+    eye: '<path d="M4 16s4-7 12-7 12 7 12 7-4 7-12 7S4 16 4 16z"/><circle cx="16" cy="16" r="3"/>',
   };
   const icon = (k, color) => `<svg viewBox="0 0 32 32" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[k] || ''}</svg>`;
-  const TRACK_MARK = { start: '١', quran: '﴿﴾', sunnah: '٤٠', seerah: '✦', listen: '♪' };
+  const TRACK_MARK = { start: '١', quran: '﴿﴾', sunnah: '٤٠', seerah: '✦', listen: '🎧' };
 
   const srcLine = (b) => b.source ? `<span class="src">المصدر: ${esc(b.source)}${b.source_ref ? ' · ' + esc(b.source_ref) : ''}${b.content.ref ? ' · ' + esc(b.content.ref) : ''}</span>` : '';
   const footer = () => `
@@ -146,7 +153,7 @@
         return `<div class="b-quote"><div class="body">${esc(c.body)}</div>${srcLine(b)}</div>`;
       case 'map': return `
         <div class="map">
-          <div class="label" style="margin-top:0">خريطة السورة</div>
+          <div class="label" style="margin-top:0">${esc(c.label || 'خريطة السورة')}</div>
           ${(c.segments || []).map((s, i) => `
             ${i ? '<div class="arrow">▼</div>' : ''}
             <div class="seg ${s.tone === 'b' ? 'b' : 'a'}">
@@ -157,6 +164,11 @@
             </div>`).join('')}
         </div>`;
       case 'memorize': ctx.memorize = true; return '<div id="mem"></div>';
+      case 'link': {
+        const safe = /^https:\/\//.test(c.url || '') ? c.url : '#';
+        return `<a class="b-link" href="${esc(safe)}" target="_blank" rel="noopener">
+          <div><h4>${esc(c.title)}</h4><p>${esc(c.desc || '')}</p><span class="site">${esc(c.site || '')}</span></div><span class="go">↗</span></a>`;
+      }
       default: return '';
     }
   }

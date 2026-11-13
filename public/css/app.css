@@ -130,3 +130,8 @@ details[open] summary::after{content:"−"}
 .view{animation:fade .25s ease}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .empty{text-align:center;color:var(--muted);padding:40px 0}
+.b-link{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;text-decoration:none;color:inherit}
+.b-link h4{font-size:15.5px;font-weight:600;color:var(--green)}
+.b-link p{font-size:13.5px;color:#3b4740}
+.b-link .site{font-size:11.5px;color:var(--muted)}
+.b-link .go{margin-inline-start:auto;color:var(--gold);font-size:18px}

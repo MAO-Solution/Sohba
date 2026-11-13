@@ -1,0 +1,18 @@
+{
+  "track": "listen",
+  "slug": "library",
+  "title": "مكتبة البداية",
+  "summary": "مصادر موثوقة تسمع وتقرا منها",
+  "sort": 1,
+  "status": "in_review",
+  "blocks": [
+    { "type": "text", "body": "دي مصادر موثوقة نبدأ بيها. والقنوات والبودكاستات المختارة هتتضاف هنا بعد ما تتراجع." },
+    { "type": "heading", "body": "اسمع القرآن" },
+    { "type": "link", "title": "الشيخ محمود خليل الحصري", "url": "https://quran.com/reciters/12", "desc": "قارئ مصري من طنطا، وتلاوته من أحسن التلاوات للي بيتعلم ويحفظ.", "site": "Quran.com" },
+    { "type": "link", "title": "القرآن كامل: تلاوة وتفسير وترجمة", "url": "https://quran.com", "desc": "اقرا واسمع أي سورة بأكتر من قارئ.", "site": "Quran.com" },
+    { "type": "heading", "body": "اقرا السنة" },
+    { "type": "link", "title": "الأربعون النووية", "url": "https://sunnah.com/nawawi40", "desc": "الأحاديث اللي بنشرحها في قسم الصُّفّة، بنصها الكامل.", "site": "Sunnah.com" },
+    { "type": "heading", "body": "عندك سؤال؟" },
+    { "type": "link", "title": "دار الإفتاء المصرية", "url": "https://www.dar-alifta.org", "desc": "إحنا مش بنفتي. أي سؤال في الدين، اسأل المتخصصين هنا.", "site": "dar-alifta.org" }
+  ]
+}
