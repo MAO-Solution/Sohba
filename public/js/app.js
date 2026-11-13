@@ -86,6 +86,16 @@
     stones: '<circle cx="10" cy="21" r="3.5"/><circle cx="21" cy="12" r="3"/><circle cx="23" cy="23" r="2.5"/><path d="M7 9l3 4M14 6l2 4"/>',
     leaf: '<path d="M7 25C7 13 15 7 26 6c0 11-7 19-19 19z"/><path d="M7 25l11-11"/>',
     hourglass: '<path d="M9 5h14M9 27h14"/><path d="M10 5c0 8 12 7 12 11s-12 3-12 11"/><path d="M22 5c0 8-12 7-12 11s12 3 12 11"/>',
+    door: '<path d="M8 28V6h16v22"/><path d="M4 28h24"/><circle cx="20" cy="17" r="1.2"/>',
+    book: '<path d="M6 7h8a2 2 0 0 1 2 2v17a2 2 0 0 0-2-2H6zM26 7h-8a2 2 0 0 0-2 2v17a2 2 0 0 1 2-2h8z"/>',
+    letter: '<rect x="5" y="9" width="22" height="15" rx="2"/><path d="M5 10l11 8 11-8"/>',
+    light: '<circle cx="16" cy="16" r="4"/><path d="M16 4v4M16 24v4M4 16h4M24 16h4M7.5 7.5l3 3M21.5 21.5l3 3M7.5 24.5l3-3M21.5 10.5l3-3"/>',
+    key: '<circle cx="11" cy="16" r="5"/><path d="M16 16h12M24 16v4M28 16v3"/>',
+    drop: '<path d="M16 4c5 7 8 11 8 15a8 8 0 0 1-16 0c0-4 3-8 8-15z"/><path d="M12 19a4 4 0 0 0 4 4"/>',
+    dawn: '<path d="M4 22h24"/><path d="M10 22a6 6 0 0 1 12 0"/><path d="M16 11v3M9 14l2 2M23 14l-2 2"/>',
+    noon: '<circle cx="16" cy="12" r="5"/><path d="M16 3v2M16 19v2M7 12h2M23 12h2M9.6 5.6l1.4 1.4M22.4 5.6L21 7"/><path d="M4 27h24"/>',
+    afternoon: '<circle cx="22" cy="15" r="4.5"/><path d="M22 6v2M29 15h-2M27 9l-1.4 1.4"/><path d="M4 27h24"/>',
+    sunset: '<path d="M4 19h24"/><path d="M10 19a6 6 0 0 1 12 0"/><path d="M16 23v5M13 26l3 2 3-2"/>',
     voice: '<path d="M16 5a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V9a4 4 0 0 1 4-4z"/><path d="M8 15a8 8 0 0 0 16 0M16 23v4"/>',
   };
   const icon = (k, color) => `<svg viewBox="0 0 32 32" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[k] || ''}</svg>`;
@@ -341,6 +351,11 @@
           ${c.variants.length > 1 ? `<div class="seg-tabs">${c.variants.map((v, i) => `<button data-v="${i}"${i ? '' : ' class="on"'}>${esc(v.label)}</button>`).join('')}</div>` : ''}
           <div class="sit-body"></div></div>`;
       }
+      case 'sequence': {
+        if (ctx.admin) return `<div class="b-list"><h4>رتّب: ${esc(c.title || '')}</h4><ol>${c.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ol></div>`;
+        const n = (ctx.sequences ||= []).push(c) - 1;
+        return `<div class="b-seq" data-seq="${n}"><div class="k">رتّب</div><p class="q">${esc(c.title || 'رتّبها بالترتيب الصح')}</p><div class="seq-body"></div></div>`;
+      }
       case 'tasmee': ctx.tasmee = true; return ctx.admin ? '<p class="b-note">هنا «تسميع» تفاعلي بيتولّد من آيات الدرس: رتّب الآيات، وكمّل الكلمة، واسمع وردّد.</p>' : '<div id="tasmee"></div>';
       case 'link': {
         const safe = /^https:\/\//.test(c.url || '') ? c.url : '#';
@@ -400,6 +415,28 @@
       };
       el.querySelectorAll('.seg-tabs button').forEach((b) => (b.onclick = () => show(Number(b.dataset.v))));
       show(0);
+    });
+  }
+
+  // رتّب الخطوات: tap the steps in order; the right order is what stays on screen at the end.
+  function bindSequences(root, ctx) {
+    root.querySelectorAll('.b-seq[data-seq]').forEach((el) => {
+      const items = ctx.sequences[el.dataset.seq].items;
+      const body = el.querySelector('.seq-body');
+      let next = 0, deck = items.map((x, i) => i).sort(() => Math.random() - 0.5);
+      if (deck.every((x, i) => x === i)) deck.push(deck.shift());
+      const row = (i) => `<div class="sq ok"><span class="sn">${AR(i + 1)}</span>${esc(items[i])}</div>`;
+      const draw = (msg = 'دوس على أول خطوة') => {
+        body.innerHTML = items.slice(0, next).map((x, i) => row(i)).join('') + (next < items.length
+          ? `<p class="tmsg">${msg}</p>${deck.filter((i) => i >= next).map((i) => `<button class="sq" data-i="${i}">${esc(items[i])}</button>`).join('')}<button class="link-btn" data-show>وريني الترتيب</button>`
+          : '<p class="tmsg done">برافو، الترتيب مظبوط 👏</p>');
+        body.querySelectorAll('[data-i]').forEach((b) => (b.onclick = () => {
+          if (Number(b.dataset.i) === next) { next++; draw('صح، كمّل'); }
+          else { b.classList.add('no'); setTimeout(() => b.classList.remove('no'), 600); body.querySelector('.tmsg').textContent = next ? `قرّب… إيه اللي بييجي بعد «${items[next - 1]}»؟` : 'قرّب… فكّر إيه أول خطوة'; }
+        }));
+        body.querySelector('[data-show]')?.addEventListener('click', () => { next = items.length; body.innerHTML = items.map((x, i) => row(i)).join(''); });
+      };
+      draw();
     });
   }
 
@@ -576,6 +613,7 @@
       bindQuizzes($app, ctx);
       bindAction($app, l, ctx.action);
       bindSituations($app, ctx);
+      bindSequences($app, ctx);
       if (ctx.tasmee) mountTasmee(l.blocks.filter((b) => b.type === 'quran' && b.content.ayah).map((b) => b.content));
       if (ctx.memorize) mountMemorize(l.blocks.filter((b) => b.type === 'quran' && b.content.ayah).map((b) => b.content), l.slug, l.title);
     } };

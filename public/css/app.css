@@ -266,3 +266,12 @@ button.tq{cursor:pointer}
 .b-family{background:var(--gold-soft);border-color:#e3cc98}
 .b-family .k{color:#7a5a17}
 .b-family details summary{cursor:pointer;font-size:13px;color:#7a5a17}
+.b-seq{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:14px 0}
+.b-seq .k{font-size:12px;font-weight:600;color:var(--green);margin-bottom:6px}
+.b-seq .q{font-weight:600;margin-bottom:8px}
+.sq{display:flex;align-items:center;gap:10px;width:100%;text-align:start;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:15px;color:var(--ink)}
+button.sq{cursor:pointer}
+.sq.ok{background:var(--green-soft);border-color:#b9d8c8}
+.sq.no{border-color:var(--red);background:var(--red-soft)}
+.sn{flex:none;width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:13px}
+.scn-grid .scn:nth-child(n+5){animation-delay:.6s}
