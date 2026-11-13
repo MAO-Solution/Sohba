@@ -1,0 +1,18 @@
+# Render Blueprint: free web service. Database lives on Neon (free, no expiry).
+services:
+  - type: web
+    name: sohba
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    # content/ is the source of truth until /admin exists, so re-seed on every deploy (idempotent).
+    startCommand: npm run migrate && npm run seed && npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false          # paste the Neon connection string in the Render dashboard
+      - key: PREVIEW_DRAFTS
+        value: "true"        # testing phase: drafts visible with the review banner. Set to false at public launch.
