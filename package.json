@@ -4,7 +4,7 @@
   "private": true,
   "description": "صحبة — صاحبك في طريقك لربنا",
   "type": "module",
-  "engines": { "node": ">=22.9" },
+  "engines": { "node": "22.x" },
   "scripts": {
     "start": "node --env-file-if-exists=.env server/index.js",
     "dev": "node --watch --env-file-if-exists=.env server/index.js",
