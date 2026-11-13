@@ -406,5 +406,13 @@
   activeSeasons(); // apply the season theme even when the app opens straight on a lesson
   route();
 
-  if (!PREVIEW && 'serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  if (!PREVIEW && 'serviceWorker' in navigator) {
+    // When a new service worker takes over (after a deploy), reload once so the new code runs.
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (hadController && !reloaded) { reloaded = true; location.reload(); }
+    });
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
 })();
