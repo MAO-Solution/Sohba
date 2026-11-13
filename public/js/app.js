@@ -132,6 +132,7 @@
   async function home() {
     const [tracks, daily, seasons] = await Promise.all([api('/tracks'), api('/daily'), activeSeasons()]);
     const featured = seasons.filter((s) => !s.rule.always);
+    const due = dueReviews(), act = pendingAction();
     const d = daily.ayah ? `
       <div class="card daily">
         <div class="d-ayah">${esc(daily.ayah.content.body)} <span class="anum">﴿${AR(daily.ayah.content.ayah ?? '')}﴾</span></div>
@@ -145,6 +146,10 @@
         <div class="tag">صاحبك في طريقك لربنا، من أول خطوة</div>
       </header>
       ${ticker(seasons.flatMap((s) => s.ticker))}
+      ${act ? `<div class="card act-ask"><div class="k">${act.day === dayNum() - 1 ? 'امبارح' : 'قبل كده'} قلت هتعمل:</div>
+        <p>${esc(act.body)}</p><p class="from">من درس «${esc(act.title)}»</p>
+        <div class="row"><button class="btn pri" data-a="done">الحمد لله، عملتها</button><button class="btn sec" data-a="later">لسه، هحاول النهارده</button></div></div>` : ''}
+      ${due.length ? `<a class="card due" href="#review"><div><h3>مراجعة النهارده</h3><p>${AR(due.length)} ${due.length === 1 ? 'درس مستنيك' : 'دروس مستنيينك'} · دقيقتين بس</p></div><span class="go">‹</span></a>` : ''}
       ${featured.map((s) => `
         <a class="card season" href="#l-${esc(s.lesson)}">
           <div><h3>${esc(s.title)}</h3><p>${esc(s.summary)}</p></div><span class="go">‹</span>
@@ -163,6 +168,18 @@
           <span class="badge push">قريباً</span>
         </div>`).join('')}
       ${footer()}`;
+  }
+  async function homeView() {
+    const html = await home();
+    return { html, after: () => {
+      $app.querySelectorAll('.act-ask [data-a]').forEach((b) => (b.onclick = () => {
+        const acts = store.get('sohba-acts', []); const a = acts.find((x) => x.state === 'pending' && x.day < dayNum());
+        if (!a) return;
+        if (b.dataset.a === 'done') { a.state = 'done'; toast('ربنا يتقبل منك 🤍'); } else { a.day = dayNum(); toast('ولا يهمك، ربنا ييسرلك'); }
+        store.set('sohba-acts', acts);
+        b.closest('.act-ask').remove();
+      }));
+    } };
   }
 
   async function track(slug) {
@@ -225,13 +242,102 @@
       }
       // The ticker lines show on the home bar, not inside the lesson. The admin preview lists them for review.
       case 'ticker': return ctx.admin ? `<div class="b-list"><h4>جمل الشريط</h4><ol>${(c.items || []).map((x) => `<li>${esc(x)}</li>`).join('')}</ol></div>` : '';
+      case 'quiz': {
+        const n = (ctx.quizzes ||= []).push({ c, slug: ctx.slug }) - 1;
+        return `<div class="b-quiz" data-quiz="${n}">
+          <div class="k">افتكر</div><p class="q">${esc(c.q)}</p>
+          <div class="opts">${order(c).map((i) => [c.options[i], i]).map(([o, i]) => `<button class="opt${ctx.admin && i === c.answer ? ' ok' : ''}" data-i="${i}"${ctx.admin ? ' disabled' : ''}>${esc(o)}</button>`).join('')}</div>
+          <div class="why"${ctx.admin ? '' : ' hidden'}>${esc(c.why || '')}</div></div>`;
+      }
+      case 'action': ctx.action = c.body; return `
+        <div class="b-action"><div class="k">طبّق النهارده</div><p>${esc(c.body)}</p>
+          ${ctx.admin ? '' : '<button class="btn gold" data-act>هعملها إن شاء الله</button>'}</div>`;
       default: return '';
     }
   }
 
+  // Stable per-question shuffle, so the right answer isn't always in the same place.
+  function order(c) {
+    const h = (str) => [...str].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) | 0, 7);
+    return c.options.map((o, i) => i).sort((a, b) => h(c.q + c.options[a]) - h(c.q + c.options[b]));
+  }
+
+  /* ---------- افتكر + طبّق: all on-device, no account needed ---------- */
+  const INTERVALS = [1, 3, 7, 14, 30]; // days until the next review, by step
+  const dayNum = (d = today()) => Math.floor((d.getTime() - d.getTimezoneOffset() * 6e4) / 864e5);
+  function bindQuizzes(root, ctx, onAnswer) {
+    root.querySelectorAll('.b-quiz').forEach((el) => {
+      const { c } = ctx.quizzes[el.dataset.quiz];
+      el.querySelectorAll('.opt').forEach((btn) => (btn.onclick = () => {
+        const i = Number(btn.dataset.i), right = i === c.answer;
+        el.querySelectorAll('.opt').forEach((b) => { b.disabled = true; if (Number(b.dataset.i) === c.answer) b.classList.add('ok'); });
+        if (!right) btn.classList.add('no');
+        el.querySelector('.why').hidden = false;
+        el.querySelector('.why').insertAdjacentHTML('afterbegin', `<b>${right ? 'صح، برافو 👏' : 'مش دي، بس عادي، كده هتفتكرها أكتر.'}</b> `);
+        onAnswer?.(Number(el.dataset.quiz), right);
+      }));
+    });
+  }
+  function bindAction(root, l, body) {
+    const btn = root.querySelector('[data-act]');
+    if (!btn) return;
+    btn.onclick = () => {
+      const acts = store.get('sohba-acts', []).filter((a) => a.slug !== l.slug);
+      acts.unshift({ slug: l.slug, title: l.title, body, day: dayNum(), state: 'pending' });
+      store.set('sohba-acts', acts.slice(0, 20));
+      btn.disabled = true; btn.textContent = 'تمام، هسألك عليها بكرة 🤍';
+    };
+  }
+  function scheduleReview(l) {
+    const srs = store.get('sohba-srs', {});
+    if (!srs[l.slug]) { srs[l.slug] = { step: 0, due: dayNum() + INTERVALS[0], title: l.title }; store.set('sohba-srs', srs); }
+  }
+  const dueReviews = () => Object.entries(store.get('sohba-srs', {})).filter(([, r]) => r.due <= dayNum());
+  const pendingAction = () => store.get('sohba-acts', []).find((a) => a.state === 'pending' && a.day < dayNum());
+
+  async function review() {
+    const due = dueReviews();
+    const head = `<div class="bar"><a class="back" href="#" aria-label="رجوع">→</a><span class="crumb">مراجعة النهارده</span></div>`;
+    if (!due.length) return `${head}<div class="empty">مفيش مراجعة النهارده 👌<br>كمّل درس جديد.</div>`;
+    const lessons = (await Promise.all(due.map(([slug]) => api('/lessons/' + slug).catch(() => null)))).filter(Boolean);
+    const ctx = { quizzes: [] }, answers = {};
+    const html = `${head}
+      <header class="hero small"><h1>افتكر</h1><div class="tag">${AR(lessons.length)} دروس · دقيقتين بس</div></header>
+      ${lessons.map((l) => {
+        ctx.slug = l.slug;
+        const qs = l.blocks.filter((b) => b.type === 'quiz').map((b) => block(b, ctx)).join('');
+        const mem = l.blocks.some((b) => b.type === 'memorize');
+        return `<div class="label">${esc(l.title)}</div>${qs}
+          ${mem ? `<a class="card rev-mem" href="#l-${esc(l.slug)}">🔁 سمّع ${esc(l.title)} لنفسك في وضع «احفظ»</a>` : ''}`;
+      }).join('')}
+      <div class="row"><button class="btn pri" id="rev-done" disabled>خلصت المراجعة</button></div>`;
+    return { html, after: () => {
+      const done = document.getElementById('rev-done');
+      if (!ctx.quizzes.length) done.disabled = false;
+      bindQuizzes($app, ctx, (n, right) => {
+        answers[n] = right;
+        if (Object.keys(answers).length === ctx.quizzes.length) done.disabled = false;
+      });
+      done.onclick = () => {
+        const srs = store.get('sohba-srs', {});
+        let next = Infinity;
+        for (const l of lessons) {
+          const r = srs[l.slug]; if (!r) continue;
+          const mine = ctx.quizzes.map((q, i) => (q.slug === l.slug ? answers[i] : true));
+          r.step = mine.every(Boolean) ? Math.min(r.step + 1, INTERVALS.length - 1) : 0;
+          r.due = dayNum() + INTERVALS[r.step];
+          next = Math.min(next, INTERVALS[r.step]);
+        }
+        store.set('sohba-srs', srs);
+        toast(`برافو! المراجعة الجاية بعد ${AR(next)} ${next === 1 ? 'يوم' : 'أيام'}`);
+        location.hash = '#';
+      };
+    } };
+  }
+
   async function lesson(slug) {
     const l = await api('/lessons/' + slug);
-    const ctx = {};
+    const ctx = { slug: l.slug };
     const body = l.blocks.map((b) => block(b, ctx)).join('');
     const html = `
       <div class="bar"><a class="back" href="#t-${esc(l.track)}" aria-label="رجوع">→</a><span class="crumb">${esc(l.track_title)}</span></div>
@@ -246,8 +352,11 @@
     return { html, after: () => {
       document.getElementById('finish').onclick = () => {
         const s = done(); s.add(l.slug); store.set('sohba-done', [...s]);
+        if (ctx.quizzes?.length || ctx.memorize) scheduleReview(l);
         toast(l.next ? 'برافو! كمّل على الدرس اللي بعده' : 'برافو! خلصت المسار ده');
       };
+      bindQuizzes($app, ctx);
+      bindAction($app, l, ctx.action);
       if (ctx.memorize) mountMemorize(l.blocks.filter((b) => b.type === 'quran' && b.content.ayah).map((b) => b.content), l.slug);
     } };
   }
@@ -281,9 +390,10 @@
     const h = location.hash.slice(1);
     let out;
     try {
-      if (h.startsWith('t-')) out = await track(h.slice(2));
+      if (h === 'review') out = await review();
+      else if (h.startsWith('t-')) out = await track(h.slice(2));
       else if (h.startsWith('l-')) out = await lesson(h.slice(2));
-      else out = await home();
+      else out = await homeView();
     } catch {
       out = `<div class="bar"><a class="back" href="#">→</a></div><div class="empty">الصفحة دي مش موجودة.</div>`;
     }

@@ -51,6 +51,8 @@ async function seed() {
     for (const l of lessons) {
       for (const b of l.blocks) {
         if (b.source && !srcId[b.source]) throw new Error(`Unknown source "${b.source}" in lesson ${l.slug}`);
+        if (b.type === 'quiz' && !(Array.isArray(b.options) && b.options.length >= 2 && Number.isInteger(b.answer)
+            && b.answer >= 0 && b.answer < b.options.length && b.q)) throw new Error(`Bad quiz in lesson ${l.slug}: ${b.q}`);
       }
     }
 
