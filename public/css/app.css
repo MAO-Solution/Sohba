@@ -43,6 +43,8 @@ a{color:var(--green)}
 .track .go{margin-inline-start:auto;color:var(--gold);font-size:18px}
 .track.soon{opacity:.55}
 .track.soon .ic{background:#efe9dc;color:var(--muted)}
+.badge.push{margin-inline-start:auto}
+.label.flush{margin-top:0}
 .badge{font-size:11px;background:var(--gold-soft);color:#7a5a17;padding:2px 8px;border-radius:99px;font-weight:600;white-space:nowrap}
 
 /* lessons list */

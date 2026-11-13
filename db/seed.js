@@ -82,7 +82,14 @@ async function seed() {
             WHERE id=$1`,
           [lessonId, l.track, l.title, l.summary, l.sort, hash]
         );
-        if (demote) stats.backToReview.push(l.slug);
+        if (demote) {
+          stats.backToReview.push(l.slug);
+          await client.query(
+            `INSERT INTO lesson_reviews (lesson_id, action, from_status, to_status, content_hash)
+             VALUES ($1, 'content_changed', $2, 'in_review', $3)`,
+            [lessonId, old.status, hash]
+          );
+        }
         if (!changed) { stats.unchanged++; continue; }
         stats.changed++;
       }

@@ -45,7 +45,27 @@ npm run dev                 # http://localhost:3000
 | `GET /api/daily` | وِرد اليوم: آية ودعاء، ثابتين طول اليوم |
 | `GET /healthz` | فحص السيرفر والـ DB |
 
+## المراجعة الشرعية (`/admin`)
+
+```
+draft ──ابعته للمراجعة (admin)──▶ in_review ──اعتمد (reviewer)──▶ approved ──انشر (admin)──▶ published
+          ◀──محتاج تعديل + ملاحظة (reviewer)──┘                            ◀──اسحب من النشر──┘
+```
+
+- الشيخ (`reviewer`) هو بس اللي يقدر يعتمد أو يرجّع درس. الأدمن ميقدرش يعتمد.
+- كل زرار بيبعت `content_hash` النسخة اللي المستخدم شايفها. لو الدرس اتغيّر في النص، العملية بترجع `409`.
+- كل حركة بتتسجل في `lesson_reviews` (مين، إمتى، من إيه لإيه، على أنهي نسخة، والملاحظة).
+- تعديل نص درس `approved` أو `published` في Git بيرجّعه `in_review` في الـ deploy الجاي، **وبيختفي من الناس** لحد ما يتراجع تاني.
+
+**التفعيل:** حط `SESSION_SECRET` (٣٢ حرف عشوائي أو أكتر) في Environment Variables. من غيره `/admin` مقفولة. وبعدين اعمل الحسابات من جهازك على الـ DB:
+
+```bash
+npm run user -- --email sheikh@example.com --name "الشيخ فلان" --role reviewer
+npm run user -- --email you@example.com --name "محمود" --role admin
+```
+
+الباسورد بيتسأل عنه interactive (١٢ حرف على الأقل). لو شغّلت نفس الأمر تاني بيعمل reset للباسورد وبيطلّع كل الـ sessions، و`--role none` بيشيل الصلاحية.
+
 ## الجاي
 
-- لوحة التحكم `/admin` و workflow المراجعة
 - الحسابات الاختيارية ومزامنة المراجعة المتباعدة (`progress`)
